@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>Assignments</title>
+
+        <!-- Bootstrap core CSS -->
+        <link rel="stylesheet" href="lib/bootstrap/css/bootstrap.min.css">
+
+        <!-- Font Awesome CSS -->
+        <link href="lib/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+
+        <!-- Custom styles for this template -->
+        <link href="styles/index.css" rel="stylesheet">
+        
+        <style type="text/css">
+            .ralign-0margin-0padding {
+                margin-bottom: 0px;
+                padding-bottom: 0px;
+                text-align: right;
+            }
+            .class-btn-icon:hover {
+                color: blue;
+            }
+            .hover-btn:hover {
+                color: blue;
+            }
+            .crsr-pointer {
+                cursor: pointer;
+            }
+            #add-new-assign-btn {
+                font-size: 20px;
+                padding-top: 5px;
+            }
+            #add-new-class-btn {
+                font-size: 20px;
+            }
+        </style>
+        
+        <script id="sidebar-template" type="text/x-handlebars-template">
+            <ul class='nav nav-sidebar'>
+                <li class='class-li' id='all'>
+                    <a>
+                        <span class='pull-right'><span class='badge'>{{total-assigns-due}}</span></span>
+                        All Classes
+                    </a>
+                </li>
+                {{#each active}}
+                    <li class='class-li crsr-pointer' id='{{id}}'>
+                        <a>
+                            <span class='pull-right'><span class='badge'>{{assigns-due}}</span></span>
+                            {{name}}
+                            <span class='fa fa-edit class-btn-icon crsr-pointer hidden class-edit-btn' id='edit-btn-{{id}}'></span>
+                            <span class='fa fa-trash class-btn-icon crsr-pointer hidden class-delete-btn' id='delete-btn-{{id}}'></span>
+                        </a>
+                    </li>
+                {{/each}}
+            </ul>
+            <div class="sidebar-bottom-bar">
+                <span class="pull-right crsr-pointer hover-btn" id="add-new-class-btn">
+                    <i class="fa fa-plus"></i> New Class
+                </span>
+            </div>
+        </script>
+        
+        <script id="duegroup-template" type="text/x-handlebars-template">
+            <div class='panel-group' id='main-accordion-{{id}}'>
+                <div class='panel panel-default'>
+                    <div class='panel-heading'>
+                        <h4 class='panel-title'>
+                            <span class='pull-right'><span class='badge'>{{assigns-due}}</span></span>
+                            <a data-toggle='collapse' data-parent='#main-accordion' href='#{{id}}'>{{title}}</a>
+                        </h4>
+                    </div>
+                    <div id='{{id}}' class='panel-collapse collapse in'>
+                        <div class='panel-body'>
+                            <ul class='assign-list'>
+                                {{#if show-due-dates}}
+                                    {{#each assigns}}
+                                        <li>
+                                            {{#if completed}}
+                                                <span class='assign-cb fa fa-check-square' id='{{id}}'></span>
+                                            {{else}}
+                                                <span class='assign-cb fa fa-square' id='{{id}}'></span>
+                                            {{/if}} 
+                                            <b>
+                                                {{name}}:
+                                                {{due}}
+                                            </b>
+                                        </li>
+                                    {{/each}}
+                                {{else}}
+                                    {{#each assigns}}
+                                        <li>
+                                            {{#if completed}}
+                                                <span class='assign-cb fa fa-check-square' id='{{id}}'></span>
+                                            {{else}}
+                                                <span class='assign-cb fa fa-square' id='{{id}}'></span>
+                                            {{/if}} 
+                                            <b>
+                                                {{name}}
+                                            </b>
+                                        </li>
+                                    {{/each}}
+                                {{/if}}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </script>
+        
+        <script id="main-header" type="text/x-handlebars-template">
+            <div class="main-header" id="main-header">
+                <span class="pull-right"><span id="add-new-assign-btn" class="crsr-pointer hover-btn"><i class="fa fa-plus"></i> New Assignment</span></span>
+                <h3>{{name}}</h3>
+            </div>
+            <div class="main-header-fix-block"></div>
+        </script>
+
+    </head>
+
+    <body>
+
+        <div class="modal fade" id="login-modal" data-backdrop="false" data-keyboard="false">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Sign In</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-danger" id="login-modal-error"></p>
+                        <form class="form-horizontal" role="form">
+                            <div class="form-group">
+                                <label for="inputEmail3" class="col-sm-2 control-label">Username</label>
+                                <div class="col-sm-10">
+                                    <input type="username" class="form-control" id="inputUsername" placeholder="Username">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="inputPassword3" class="col-sm-2 control-label">Password</label>
+                                <div class="col-sm-10">
+                                    <input type="password" class="form-control" id="inputPassword" placeholder="Password">
+                                </div>
+                            </div>
+                        </form>
+                        <p class="ralign-0margin-0padding">Don't have an existing account? <a href="register.html">Sign up</a> for a free one today.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" id="signin-btn">Sign In</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="modal fade" id="change-password-modal" data-backdrop="false" data-keyboard="false">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Change Password</h4>
+                    </div>
+                    <div class="modal-body">
+                        
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" id="cancel-change-password-btn">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="submit-change-password-btn">Change</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="modal fade" id="change-name-modal" data-backdrop="false" data-keyboard="false">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Change Name</h4>
+                    </div>
+                    <div class="modal-body">
+                        
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" id="cancel-change-name-btn">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="submit-change-name-btn">Change</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="modal fade" id="change-email-modal" data-backdrop="false" data-keyboard="false">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Change Email</h4>
+                    </div>
+                    <div class="modal-body">
+                        
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" id="cancel-change-email-btn">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="submit-change-email-btn">Change</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="modal fade" id="add-new-class-modal" data-backdrop="false" data-keyboard="false">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Add New Class</h4>
+                    </div>
+                    <div class="modal-body">
+                        <form class="form-horizontal" role="form">
+                            <div class="form-group">
+                                <label for="name-add-new-class-txt" class="col-sm-2 control-label">Name</label>
+                                <div class="col-sm-10">
+                                    <input type="username" class="form-control" id="name-add-new-class-txt" placeholder="New class name">
+                                </div>
+                            </div>
+                        </form>
+                        <p class="ralign-0margin-0padding text-danger" id="error-add-new-class-lbl"></p>
+                    </div>
+                    <div class="modal-footer">
+                        <span class="hidden pull-left" id="progress-add-new-class-span"><i class="fa fa-spinner fa-spin"></i> Creating class...</span>
+                        <button type="button" class="btn btn-default" id="cancel-add-new-class-btn">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="submit-add-new-class-btn">Create</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="modal fade" id="change-class-name-modal" data-backdrop="false" data-keyboard="false">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Change Class Name</h4>
+                    </div>
+                    <div class="modal-body">
+                        <form class="form-horizontal" role="form">
+                            <div class="form-group">
+                                <label for="oldname-change-class-name-txt" class="col-sm-3 control-label">Old Name</label>
+                                <div class="col-sm-9">
+                                    <p id="oldname-change-class-name-txt" class="form-control"></p>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="newname-change-class-name-txt" class="col-sm-3 control-label">New Name</label>
+                                <div class="col-sm-9">
+                                    <input type="username" class="form-control" id="newname-change-class-name-txt" placeholder="New class name">
+                                </div>
+                            </div>
+                        </form>
+                        <p class="ralign-0margin-0padding text-danger" id="error-change-class-name-lbl"></p>
+                    </div>
+                    <div class="modal-footer">
+                        <span class="hidden pull-left" id="progress-change-class-name-span"><i class="fa fa-spinner fa-spin"></i> Changing name...</span>
+                        <button type="button" class="btn btn-default" id="cancel-change-class-name-btn">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="submit-change-class-name-btn">Change</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="modal fade" id="-modal" data-backdrop="false" data-keyboard="false">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title"></h4>
+                    </div>
+                    <div class="modal-body">
+                        
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" id="cancel--btn"></button>
+                        <button type="button" class="btn btn-primary" id="submit--btn"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="main-div">
+
+            <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+                <div class="container-fluid">
+                    <div class="navbar-header">
+                        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
+                            <span class="sr-only">Toggle navigation</span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>
+                        <a class="navbar-brand" href="#">Assignments</a>
+                    </div>
+                    <div class="navbar-collapse collapse">
+                        <ul class="nav navbar-nav navbar-right">
+                            <li class="dropdown" id="loggedin-user">
+                                <a class="dropdown-toggle crsr-pointer" data-toggle="dropdown">
+                                    <i class="fa fa-user"></i>
+                                    <span id="display-name"></span>
+                                    <span class="caret"></span>
+                                </a>
+                                <ul class="dropdown-menu" role="menu">
+                                    <li><a class="crsr-pointer" href="#">Change Password</a></li>
+                                    <li><a class="crsr-pointer" href="#">Change Email</a></li>
+                                    <li><a class="crsr-pointer" href="#">Change Display Name</a></li>
+                                    <li class="divider"></li>
+                                    <li><a class="crsr-pointer" id="signout-link">Sign Out</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-sm-3 col-md-2 sidebar" id="sidebar">
+                        <!-- Sidebar Content Area -->
+                    </div>
+                    <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main" id="main">
+                        <!-- Main Content Area -->
+                        
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Bootstrap core JavaScript ================================================== -->
+        <!-- Placed at the end of the document so the pages load faster -->
+        <script src="lib/jquery/jquery.min.js"></script>
+        <script src="lib/handlebars/handlebars-v2.0.0.js"></script>
+        <script src="lib/bootstrap/js/bootstrap.min.js"></script>
+        <script src="scripts/cookies.js"></script>
+        <script src="scripts/ajax.js"></script>
+        <script src="scripts/app.js"></script>
+        <script src="scripts/modals.js"></script>
+    </body>
+</html>

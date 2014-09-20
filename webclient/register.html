@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>Sign-Up for Assignments</title>
+        
+        <!-- Bootstrap core CSS -->
+        <link rel="stylesheet" href="lib/bootstrap/css/bootstrap.min.css">
+        
+        <style type="text/css">
+        
+        body {
+          padding-top: 40px;
+          padding-bottom: 40px;
+          background-color: #eee;
+        }
+
+        .form-signin {
+          max-width: 330px;
+          padding: 15px;
+          margin: 0 auto;
+        }
+        .form-signin .form-signin-heading,
+        .form-signin .checkbox {
+          margin-bottom: 10px;
+        }
+        .form-signin .checkbox {
+          font-weight: normal;
+        }
+        .form-signin .form-control {
+          position: relative;
+          height: auto;
+          -webkit-box-sizing: border-box;
+             -moz-box-sizing: border-box;
+                  box-sizing: border-box;
+          padding: 10px;
+          font-size: 16px;
+        }
+        .form-signin .form-control:focus {
+          z-index: 2;
+        }
+        .top {
+          margin-bottom: -1px;
+          border-bottom-right-radius: 0;
+          border-bottom-left-radius: 0;
+        }
+        .middle {
+            margin-bottom: -1px;
+            margin-top: -1px;
+            border-radius: 0;
+        }
+        .bottom {
+          margin-bottom: 10px;
+          border-top-left-radius: 0;
+          border-top-right-radius: 0;
+        }
+        
+        .busy {
+            -webkit-filter: grayscale(0.5) blur(10px);
+        }
+        
+        </style>
+        
+    </head>
+    <body>
+        
+        <div class="modal fade" id="results" data-backdrop="false" data-keyboard="false">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h4 class="modal-title">Register</h4>
+              </div>
+              <div class="modal-body">
+                <p id="results">User succesfully created.</p>
+              </div>
+              <div class="modal-footer">
+                <a role="button" class="btn btn-primary" id="OK-btn" href="index.html">OK</a>
+              </div>
+            </div><!-- /.modal-content -->
+          </div><!-- /.modal-dialog -->
+        </div><!-- /.modal -->
+        
+        <div class="container" id="main">
+
+          <form class="form-signin" role="form">
+            <h2 class="form-signin-heading">Please Register</h2>
+            <input type="text" class="form-control top" placeholder="User name" id="username" autofocus>
+            <input type="text" class="form-control middle" placeholder="Display name" id="displayname">
+            <input type="text" class="form-control middle" placeholder="Email address" id="email">
+            <input type="password" class="form-control bottom" placeholder="Password" id="password">
+            <p class="text-danger" id="error-text"></p>
+            <button class="btn btn-lg btn-primary btn-block" id="submit">Register</button>
+          </form>
+
+        </div> <!-- /container -->
+        
+        <!-- Bootstrap core JavaScript ================================================== -->
+        <!-- Placed at the end of the document so the pages load faster -->
+        <script src="lib/jquery/jquery.min.js"></script>
+        <script src="lib/bootstrap/js/bootstrap.min.js"></script>
+        
+        <script src="scripts/ajax.js"></script>
+        
+        <script type="text/javascript">
+        var cb = function (status, response) {
+            $("#main").removeClass('busy');
+            if (status == "201") {
+                //$("#results").modal('show');
+                $('#results').modal('show');
+                $('#results').modal('show');
+            } else {
+                $("#error-text").text("An error has occured! Please try again.");
+            }
+        }
+        
+        $(function () {
+            $("#error-text").text("");
+            $("#submit").bind('click', function () {
+                $("#error-text").text("");
+                var body = {'user_name': $("#username").val(), 'password': $("#password").val(), 'display_name': $("#displayname").val(), 'email': $("#email").val()};
+                $("#main").addClass('busy');
+                performAjaxRequest('POST', 'create_user', {}, JSON.stringify(body), cb);
+            });
+        });
+        
+        </script>
+        
+    </body>
+</html>
