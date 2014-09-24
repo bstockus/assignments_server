@@ -1,4 +1,5 @@
 import webapp2
+import os
 
 from Handlers.Base import *
 
@@ -13,6 +14,13 @@ import Handlers.Assign
 class IndexRedirect(LoggedRequestHandler):
     def get(self):
         self.redirect('/web/index.html')
+
+class JavaScriptAPIPathRouter(LoggedRequestHandler):
+    def get(self):
+        if os.environ['SERVER_SOFTWARE'].startswith('Development'):
+            self.redirect('/web/api_development.js')
+        else:
+            self.redirect('/web/api_production.js')
 
 # Application Routes
 routes = [
@@ -29,6 +37,7 @@ routes = [
     ('/api/signout', Handlers.User.SignOut.SignOut),
     ('/api/create_user', Handlers.User.CreateUser.CreateUser),
     ('/api/user', Handlers.User.User.User),
+    ('/api.js', JavaScriptAPIPathRouter),
     ('/', IndexRedirect)
 ]
 

@@ -19,14 +19,36 @@ $(function () {
     // Initialize Modals
     initializeAddNewClassModal();
     initializeChangeClassNameModal();
+    initializeAddNewAssignmentModal();
     
-    Handlebars.registerHelper('checkbox', function(value) {
+    Handlebars.registerHelper('checkbox', function (value){
         if (value) {
             return "<span class='assign-cb fa fa-check-square-o' id='" + this.id + "'></span>";
         } else {
             return "<span class='assign-cb fa fa-square-o' id='" + this.id + "'></span>";
         }
     });
+    
+    Handlebars.registerHelper('prettyDate', function (date){
+        var _date = new Date(date);
+        return _date.toLocaleDateString();
+    });
+    
+    Handlebars.registerHelper('prettyDaysOverdue', function (date){
+        var _today = new Date();
+        var _assign = new Date(date);
+        var _assignUTC = _assign.valueOf();
+        var _todayUTC = _today.valueOf();
+        var _delta = _todayUTC - _assignUTC;
+        var _deltaDays = Math.floor(_delta / (1000 * 60 * 60 * 24));
+        if (_deltaDays == 1) {
+            return "(" + _deltaDays.toString() + " day overdue)";
+        } else if (_deltaDays > 0) {
+            return "(" + _deltaDays.toString() + " days overdue)";
+        } else {
+            return "";
+        }
+    })
     
     if (checkCookie('username') && checkCookie('password') && checkCookie('good')) {
         login(getCookie('username'), getCookie('password'));
@@ -91,7 +113,9 @@ function updateClassSidebar() {
     
     if (_classes['active'].length > 0) {
         $("#" + _classes['active'][_active_class_idx]['id']).removeClass('active');
-        _active_class_idx = 0;
+        if (_active_class_idx >= _classes['active'].length) {
+            _active_class_idx = _classes['active'].length - 1;
+        }
         $("#" + _classes['active'][_active_class_idx]['id']).addClass('active');
         refreshActiveClass();
     
@@ -110,14 +134,18 @@ function updateClassSidebar() {
                 }
             }
         });
-    
+        
+        $(".class-edit-btn").tooltip();
+        
         $(".class-edit-btn").click(function (event){
             var _id = this.id.substring(9);
             var _class = findClassById(_id);
             var _name = _class['name'];
             displayChangeClassNameModal(_name, _id);
         });
-    
+        
+        $(".class-delete-btn").tooltip();
+        
         $(".class-delete-btn").click(function (event){
             //TODO: Implement Class Delete Functionality
         });
@@ -174,15 +202,23 @@ function updateActiveClass() {
     
     $("#main").html(html);
     
+    $(".unchecked").hover(function (event){
+        $(".assign-cb#" + this.id).removeClass('fa-square').addClass('fa-check-square-o');
+    }, function (event){
+        $(".assign-cb#" + this.id).addClass('fa-square').removeClass('fa-check-square-o');
+    });
+    
+    $(".assign-name").popover();
+    
     $("#add-new-assign-btn").click(function (event){
-        //TODO: Implement add new assignment button.
+        var active_class_id = _classes['active'][_active_class_idx]['id'];
+        var active_class_name = _classes['active'][_active_class_idx]['name'];
+        displayAddNewAssignmentModal(active_class_name, active_class_id);
     });
 }
 
 function refreshActiveClass() {
     var activeClassId = _classes['active'][_active_class_idx]['id'];
-    
-    
     
     //Reload the Active Class Data
     var cb = function(status, response) {

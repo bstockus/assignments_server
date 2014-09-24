@@ -3,8 +3,8 @@ var _password = "";
 var _auth_token = "";
 var _expires = "";
 
-//var _base_url = "http://bstockus-assignments.appspot.com/api/";
-var _base_url = "http://localhost:8080/api/";
+
+
 
 function performAjaxRequest(method, path, headers, body, callback) {
     url = _base_url + path;

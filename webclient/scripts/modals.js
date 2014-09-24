@@ -1,4 +1,5 @@
 var _change_class_name_id = "";
+var _add_new_assignment_class_id = "";
 
 function initializeAddNewClassModal() {
     $("#cancel-add-new-class-btn").click(function (event){
@@ -60,6 +61,39 @@ function initializeChangeClassNameModal() {
     });
 }
 
+function initializeAddNewAssignmentModal() {
+    $("#cancel-add-new-assignment-btn").click(function (event){
+        $("#add-new-assignment-modal").modal('hide');
+    });
+    $("#submit-add-new-assignment-btn").click(function (event){
+        $("#submit-add-new-assignment-btn").addClass('hidden');
+        $("#cancel-add-new-assignment-btn").addClass('hidden');
+        $("#progress-add-new-assignment-span").removeClass('hidden');
+        $("#error-add-new-assignment-lbl").text("");
+        var cb = function (status, response){
+            $("#submit-add-new-assignment-btn").removeClass('hidden');
+            $("#cancel-add-new-assignment-btn").removeClass('hidden');
+            $("#progress-add-new-assignment-span").addClass('hidden');
+            if (status == "201") {
+                //TODO: See if we can update the new class to the display, without completly reloading the entire active class, via AJAX
+                refreshClassSidebar();
+                $("#add-new-assignment-modal").modal('hide');
+            } else {
+                $("#error-add-new-assignment-lbl").text("Unable to create a new assignment.");
+            }
+        };
+        
+        var body = {'name': $("#name-add-new-assignment-txt").val(), 
+                    'due': {
+                        'day': parseInt($("#day-due-add-new-assignment-select").val()) + 1, 
+                        'month': parseInt($("#month-due-add-new-assignment-select").val()), 
+                        'year': parseInt($("#year-due-add-new-assignment-txt").val())
+                    }};
+        
+        performAuthorizedAjaxRequest('POST', 'class/' + _add_new_assignment_class_id + "/assign/", {}, JSON.stringify(body), cb);
+    });
+}
+
 function displayAddNewClassModal() {
     $("#submit-add-new-class-btn").removeClass('hidden');
     $("#cancel-add-new-class-btn").removeClass('hidden');
@@ -76,6 +110,24 @@ function displayChangeClassNameModal(_name, _id) {
     $("#progress-change-class-name-span").addClass('hidden');
     $("#error-change-class-name-lbl").text("");
     $("#oldname-change-class-name-txt").text(_name)
-    $("#newname-change-class-name-txt").val("");
+    $("#newname-change-class-name-txt").val(_name);
     $("#change-class-name-modal").modal('show');
+}
+
+function displayAddNewAssignmentModal(_class_name, _class_id) {
+    var _date = new Date();
+    var _day = _date.getDate();
+    var _month = _date.getMonth() + 1;
+    var _year = _date.getFullYear();
+    _add_new_assignment_class_id = _class_id;
+    $("#submit-add-new-assignment-btn").removeClass('hidden');
+    $("#cancel-add-new-assignment-btn").removeClass('hidden');
+    $("#progress-add-new-assignment-span").addClass('hidden');
+    $("#error-add-new-assignment-lbl").text("");
+    $("#class-add-new-assignment-txt").text(_class_name)
+    $("#name-add-new-assignment-txt").val("");
+    $("#add-new-assignment-modal").modal('show');
+    $("#day-due-add-new-assignment-select").val(_day.toString());
+    $("#month-due-add-new-assignment-select").val(_month.toString());
+    $("#year-due-add-new-assignment-txt").val(_year.toString());
 }
