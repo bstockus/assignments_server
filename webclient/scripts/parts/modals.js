@@ -1,3 +1,22 @@
+var _modals = {};
+
+function loadModal(name, _init_callback) {
+    if (_modals === undefined || _modals[name] === undefined) {
+    	$.ajax({
+    		url : _modals_url + name + '.html',
+    		success : function(data) {
+                if (_modals === undefined) {
+                    _modals = {};
+                }
+                _modals[name] = data;
+                $("body").prepend(data);
+                _init_callback();
+    		},
+    		async : false
+    	});
+    }
+}
+
 //function _modal_callback(status, response)
 //function _modal_submit_callback(_cb, _cancel_cb)
 function initializeModal(_modal_name, _modal_callback, _modal_submit_callback) {

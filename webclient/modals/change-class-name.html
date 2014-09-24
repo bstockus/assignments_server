@@ -1,0 +1,31 @@
+<div class="modal fade" id="change-class-name-modal" data-backdrop="false" data-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Change Class Name</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal" role="form">
+                    <div class="form-group">
+                        <label for="oldname-change-class-name-txt" class="col-sm-3 control-label">Old Name</label>
+                        <div class="col-sm-9">
+                            <p id="oldname-change-class-name-txt" class="form-control"></p>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="newname-change-class-name-txt" class="col-sm-3 control-label">New Name</label>
+                        <div class="col-sm-9">
+                            <input type="username" class="form-control" id="newname-change-class-name-txt" placeholder="">
+                        </div>
+                    </div>
+                </form>
+                <p class="ralign-0margin-0padding text-danger" id="error-change-class-name-lbl"></p>
+            </div>
+            <div class="modal-footer">
+                <span class="hidden pull-left" id="progress-change-class-name-span"><i class="fa fa-spinner fa-spin"></i> Changing name...</span>
+                <button type="button" class="btn btn-default" id="cancel-change-class-name-btn">Cancel</button>
+                <button type="button" class="btn btn-primary" id="submit-change-class-name-btn">Change</button>
+            </div>
+        </div>
+    </div>
+</div>

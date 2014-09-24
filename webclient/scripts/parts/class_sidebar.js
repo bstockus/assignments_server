@@ -1,5 +1,5 @@
 function updateClassSidebar() {
-    var html = _template_sidebar(_classes);
+    var html = (Handlebars.getTemplate("class_sidebar"))(_classes);
     $("#sidebar").html(html);
     
     if (_classes['active'].length > 0) {

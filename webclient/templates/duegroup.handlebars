@@ -1,0 +1,36 @@
+<div class='panel-group' id='main-accordion-{{id}}'>
+    <div class='panel panel-default'>
+        <div class='panel-heading'>
+            <h4 class='panel-title'>
+                <span class='pull-right'><span class='badge'>{{assigns-due}}</span></span>
+                <a data-toggle='collapse' data-parent='#main-accordion' href='#{{id}}'>{{title}}</a>
+            </h4>
+        </div>
+        <div id='{{id}}' class='panel-collapse collapse in'>
+            <div class='panel-body'>
+                <ul class='assign-list'>
+                    {{#if show-due-dates}}
+                        {{#each assigns}}
+                            <li class='assign-li' id='{{id}}'>
+                                {{> assign_cb}}
+                                <b>
+                                    <span class='pull-right'><span class='text-danger'>{{prettyDaysOverdue due}}</span> {{prettyDate due}}</span>
+                                    {{> assign_name}}
+                                </b>
+                            </li>
+                        {{/each}}
+                    {{else}}
+                        {{#each assigns}}
+                            <li class='assign-li' id='{{id}}'>
+                                {{> assign_cb}}
+                                <b>
+                                    {{> assign_name}}
+                                </b>
+                            </li>
+                        {{/each}}
+                    {{/if}}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
