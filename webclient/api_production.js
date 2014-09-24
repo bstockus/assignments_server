@@ -1,0 +1,1 @@
+var _base_url = "http://bstockus-assignments.appspot.com/api/";
