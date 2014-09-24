@@ -45,7 +45,11 @@ function login(username, password) {
             res = JSON.parse(response);
             _auth_token = res['auth_token'];
             _expires = new Date(res['expires']+"Z");
-            signin(res['display_name']);
+            $("#loggedin-user").removeClass('hidden');
+            $("#display-name").text(res['display_name']);
+            setTimeout( function() {
+                refreshClassSidebar();
+            }, 500);
             setCookie('good', '1', 10);
         } else {
             displayLoginModal();
