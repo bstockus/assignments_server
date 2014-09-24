@@ -8,6 +8,8 @@ function displayLoginModal() {
                 _expires = new Date(res['expires']+"Z");
                 setCookie('good', '1', 10);
                 $(ID(modal(__modal))).modal('hide');
+                $("#loggedin-user").removeClass('hidden');
+                $("#display-name").text(res['display_name']);
                 setTimeout( function() {
                     refreshClassSidebar();
                 }, 500);
