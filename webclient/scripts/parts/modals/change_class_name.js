@@ -1,6 +1,6 @@
 var _change_class_name_id = "";
 
-function displayChangeClassNameModal(_name, _id) {
+function displayChangeClassNameModal(__name, _id) {
     var __modal = "change-class-name";
     var _init_cb = function () {
         var _modal_callback = function (_status, response){
@@ -28,6 +28,6 @@ function displayChangeClassNameModal(_name, _id) {
     };
     loadModal(__modal, _init_cb);
     _change_class_name_id = _id;
-    $(ID(txt(__modal, "newnamw"))).val(_name);
+    $(ID(txt(__modal, "newname"))).val(__name);
     displayModal(__modal);
 }
