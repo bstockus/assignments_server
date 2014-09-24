@@ -35,8 +35,8 @@ function displayAddNewAssignmentModal(_class_name, _class_id) {
     };
     loadModal(__modal, _init_callback);
     _add_new_assignment_class_id = _class_id;
-    $(ID(txt(__modal, "class"))).text(_class_name)
     $(ID(txt(__modal, "name"))).val("");
+    $(ID(span(__modal, "classname"))).text(_class_name);
     $(ID(select(__modal, "day-due"))).val(_day.toString());
     $(ID(select(__modal, "month-due"))).val(_month.toString());
     $(ID(txt(__modal, "year-due"))).val(_year.toString());
