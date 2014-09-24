@@ -55,6 +55,10 @@ $(function () {
         }
     })
     
+    // Register Handlebars Partials
+    Handlebars.registerPartial('assign_cb', $("#assign-cb-template").html());
+    Handlebars.registerPartial('assign_name', $("#assign-name-template").html());
+    
     // Compile Handlebars Templates
     _template_sidebar = Handlebars.compile($("#sidebar-template").html());
     _template_main_header = Handlebars.compile($("#main-header").html());

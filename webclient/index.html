@@ -112,6 +112,20 @@
             </div>
         </script>
         
+        <script id="assign-cb-template" type="text/x-handlebars-template">
+            {{#if completed}}
+                <span class='assign-cb fa fa-check-square' id='{{id}}'></span>
+            {{else}}
+                <span class='assign-cb fa fa-square unchecked' id='{{id}}'></span>
+            {{/if}}
+        </script>
+        
+        <script id="assign-name-template" type="text/x-handlebars-template">
+            <a tabindex="0" class='assign-name' data-toggle="popover" data-html="true" data-trigger="focus" data-placement="bottom" title="{{name}}" data-content="Created: <span class='pull-right popover-right'>{{prettyDate created}}</span>{{#if completed}}<br/>Finished: <span class='pull-right popover-right'>{{prettyDate date-completed}}</span>{{/if}}">
+                {{name}}
+            </a>
+        </script>
+        
         <script id="duegroup-template" type="text/x-handlebars-template">
             <div class='panel-group' id='main-accordion-{{id}}'>
                 <div class='panel panel-default'>
@@ -127,27 +141,19 @@
                                 {{#if show-due-dates}}
                                     {{#each assigns}}
                                         <li class='assign-li' id='{{id}}'>
-                                            {{#if completed}}
-                                                <span class='assign-cb fa fa-check-square' id='{{id}}'></span>
-                                            {{else}}
-                                                <span class='assign-cb fa fa-square unchecked' id='{{id}}'></span>
-                                            {{/if}} 
+                                            {{> assign_cb}}
                                             <b>
                                                 <span class='pull-right'><span class='text-danger'>{{prettyDaysOverdue due}}</span> {{prettyDate due}}</span>
-                                                <a tabindex="0" class='assign-name' data-toggle="popover" data-html="true" data-trigger="focus" data-placement="bottom" title="{{name}}" data-content="Created: <span class='pull-right popover-right'>{{prettyDate created}}</span>{{#if completed}}<br/>Finished: <span class='pull-right popover-right'>{{prettyDate date-completed}}</span>{{/if}}">{{name}}</a>
+                                                {{> assign_name}}
                                             </b>
                                         </li>
                                     {{/each}}
                                 {{else}}
                                     {{#each assigns}}
                                         <li class='assign-li' id='{{id}}'>
-                                            {{#if completed}}
-                                                <span class='assign-cb fa fa-check-square' id='{{id}}'></span>
-                                            {{else}}
-                                                <span class='assign-cb fa fa-square unchecked' id='{{id}}'></span>
-                                            {{/if}} 
+                                            {{> assign_cb}}
                                             <b>
-                                                <a tabindex="0" class='assign-name' data-toggle="popover" data-html="true" data-trigger="focus" data-placement="bottom" title="{{name}}" data-content="Created: <span class='pull-right popover-right'>{{prettyDate created}}</span>{{#if completed}}<br/>Finished: <span class='pull-right popover-right'>{{prettyDate date-completed}}</span>{{/if}}">{{name}}</a>
+                                                {{> assign_name}}
                                             </b>
                                         </li>
                                     {{/each}}
