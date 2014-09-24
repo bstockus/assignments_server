@@ -48,7 +48,7 @@ function login(username, password) {
             signin(res['display_name']);
             setCookie('good', '1', 10);
         } else {
-            loginfailure();
+            displayLoginModal();
         }
     }
     performAjaxRequest('POST', 'signin', {}, JSON.stringify(req_data), cb);
