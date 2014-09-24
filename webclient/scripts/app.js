@@ -3,6 +3,10 @@ var _classes = [];
 var _active_class_idx = 0;
 var _active_class = {};
 
+var _template_sidebar;
+var _template_main_header;
+var _template_duegroup;
+
 function findClassById(_id) {
     var __classes = _classes['active'];
     var _class;
@@ -21,6 +25,7 @@ $(function () {
     initializeChangeClassNameModal();
     initializeAddNewAssignmentModal();
     
+    // Register Handlebars Helpers
     Handlebars.registerHelper('checkbox', function (value){
         if (value) {
             return "<span class='assign-cb fa fa-check-square-o' id='" + this.id + "'></span>";
@@ -49,6 +54,11 @@ $(function () {
             return "";
         }
     })
+    
+    // Compile Handlebars Templates
+    _template_sidebar = Handlebars.compile($("#sidebar-template").html());
+    _template_main_header = Handlebars.compile($("#main-header").html());
+    _template_duegroup = Handlebars.compile($("#duegroup-template").html());
     
     if (checkCookie('username') && checkCookie('password') && checkCookie('good')) {
         login(getCookie('username'), getCookie('password'));
@@ -106,9 +116,7 @@ function loginfailure() {
 }
 
 function updateClassSidebar() {
-    // Update the classes sidebar
-    var sidebar_compiled_template = Handlebars.compile($("#sidebar-template").html());
-    var html = sidebar_compiled_template(_classes);
+    var html = _template_sidebar(_classes);
     $("#sidebar").html(html);
     
     if (_classes['active'].length > 0) {
@@ -179,15 +187,12 @@ function refreshClassSidebar() {
 }
 
 function updateActiveClass() {
-    // Update the Current Main Content Area
-    var main_header_compliled_template = Handlebars.compile($("#main-header").html());
-    var sidebar_compiled_template = Handlebars.compile($("#duegroup-template").html());
     
     var ids = ['past-due', 'due-today', 'due-tomorrow', 'due-this-week', 'due-next-week', 'due-this-month', 'due-after-this-month', 'completed'];
     var titles = ['Past Due', 'Due Today', 'Due Tomorrow', 'Due This Week', 'Due Next Week', 'Due This Month', 'Due After This Month', 'Completed'];
     var show_due_dates = [true, false, false, true, true, true, true, true];
     
-    var html = main_header_compliled_template(_active_class);
+    var html = _template_main_header(_active_class);
     
     for (var idx = 0; idx < ids.length; idx ++) {
         var id = ids[idx];
@@ -196,7 +201,7 @@ function updateActiveClass() {
         
         var obj = {'id': id, 'title': title, 'assigns': _active_class['assigns'][id], 'assigns-due': _active_class['assigns-due'][id], 'show-due-dates': show_due_date};
         
-        html += sidebar_compiled_template(obj);
+        html += _template_duegroup(obj);
         
     }
     
@@ -206,6 +211,11 @@ function updateActiveClass() {
         $(".assign-cb#" + this.id).removeClass('fa-square').addClass('fa-check-square-o');
     }, function (event){
         $(".assign-cb#" + this.id).addClass('fa-square').removeClass('fa-check-square-o');
+    });
+    
+    $(".unchecked").click(function (event){
+        var _id = this.id;
+        
     });
     
     $(".assign-name").popover();

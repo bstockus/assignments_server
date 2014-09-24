@@ -126,7 +126,7 @@
                             <ul class='assign-list'>
                                 {{#if show-due-dates}}
                                     {{#each assigns}}
-                                        <li class='assign-li'>
+                                        <li class='assign-li' id='{{id}}'>
                                             {{#if completed}}
                                                 <span class='assign-cb fa fa-check-square' id='{{id}}'></span>
                                             {{else}}
@@ -140,7 +140,7 @@
                                     {{/each}}
                                 {{else}}
                                     {{#each assigns}}
-                                        <li class='assign-li'>
+                                        <li class='assign-li' id='{{id}}'>
                                             {{#if completed}}
                                                 <span class='assign-cb fa fa-check-square' id='{{id}}'></span>
                                             {{else}}
