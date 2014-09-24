@@ -3,9 +3,6 @@ var _password = "";
 var _auth_token = "";
 var _expires = "";
 
-
-
-
 function performAjaxRequest(method, path, headers, body, callback) {
     url = _base_url + path;
     $.ajax({
