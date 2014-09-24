@@ -3,9 +3,6 @@ var _password = "";
 var _auth_token = "";
 var _expires = "";
 
-
-
-
 function performAjaxRequest(method, path, headers, body, callback) {
     url = _base_url + path;
     $.ajax({
@@ -51,7 +48,7 @@ function login(username, password) {
             signin(res['display_name']);
             setCookie('good', '1', 10);
         } else {
-            loginfailure();
+            displayLoginModal();
         }
     }
     performAjaxRequest('POST', 'signin', {}, JSON.stringify(req_data), cb);

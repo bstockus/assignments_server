@@ -1,0 +1,23 @@
+<ul class='nav nav-sidebar'>
+    <li class='class-li' id='all'>
+        <a>
+            <span class='pull-right'><span class='badge'>{{total-assigns-due}}</span></span>
+            All Classes
+        </a>
+    </li>
+    {{#each active}}
+        <li class='class-li crsr-pointer' id='{{id}}'>
+            <a>
+                <span class='pull-right'><span class='badge'>{{assigns-due}}</span></span>
+                {{name}}
+                <span class='fa fa-edit class-btn-icon crsr-pointer hidden class-edit-btn' id='edit-btn-{{id}}' data-toggle="tooltip" title="Edit"></span>
+                <span class='fa fa-trash class-btn-icon crsr-pointer hidden class-delete-btn' id='delete-btn-{{id}}' data-toggle="tooltip" title="Delete"></span>
+            </a>
+        </li>
+    {{/each}}
+</ul>
+<div class="sidebar-bottom-bar">
+    <span class="pull-right crsr-pointer hover-btn" id="add-new-class-btn">
+        <i class="fa fa-plus"></i> New Class
+    </span>
+</div>
