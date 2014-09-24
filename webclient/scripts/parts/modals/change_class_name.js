@@ -28,7 +28,6 @@ function displayChangeClassNameModal(_name, _id) {
     };
     loadModal(__modal, _init_cb);
     _change_class_name_id = _id;
-    $(ID(txt(__modal, "oldname"))).text(_name)
     $(ID(txt(__modal, "newnamw"))).val(_name);
     displayModal(__modal);
 }
