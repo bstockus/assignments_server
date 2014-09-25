@@ -597,7 +597,7 @@ var Class = function (id, __name, assigns_due){
     this._assigns_due = null;
     this._assigns = null;
     
-    this._assign_groups = ['past-due', 'due-today', 'due-tomorrow', 'due-this-week', 'due-next-week', 'due-this-month', 'due-after-this-month', 'completed'];
+    this._assign_groups = ['past-due', 'due-today', 'due-tomorrow', 'due-this-week', 'due-next-week', 'due-this-month', 'due-after-this-month'];
     
     this.getID = function (){
         return this._id;
