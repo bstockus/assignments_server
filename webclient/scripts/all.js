@@ -49,6 +49,21 @@ function performAuthorizedAjaxRequest(method, path, headers, body, callback) {
     });
 }
 
+function performSyncAuthorizedAjaxRequest(method, path, body, callback) {
+    $.ajax({
+        url: _base_url + path,
+        type: method,
+        data: body,
+        x_callback: callback,
+        dataType: "json",
+        headers: {"X-Assignments-Auth-Token": _auth_token},
+        async: false,
+        complete: function(jqXHR, status) {
+            this.x_callback(jqXHR.status, jqXHR.responseText);
+        }
+    });
+}
+
 function login(username, password) {
     setCookie('username', username, 10);
     setCookie('password', password, 10);
@@ -72,6 +87,28 @@ function login(username, password) {
         }
     }
     performAjaxRequest('POST', 'signin', {}, JSON.stringify(req_data), cb);
+}
+
+function performClassListRequest(_success_cb, _failure_cb) {
+    var _cb = function (_status, _response){
+        if (_status == "200") {
+            _success_cb(JSON.parse(_response));
+        } else {
+            _failure_cb("");
+        }
+    };
+    performSyncAuthorizedAjaxRequest('GET', 'class/', "", _cb);
+}
+
+function performClassGetRequest(_id, _success_cb, _failure_cb) {
+    var _cb = function (_status, _response){
+        if (_status == "200") {
+            _success_cb(JSON.parse(_response));
+        } else {
+            _failure_cb("");
+        }
+    };
+    performSyncAuthorizedAjaxRequest('GET', 'class/' + _id, "", _cb);
 }function setCookie(cname, cvalue, exdays) {
     var d = new Date();
     d.setTime(d.getTime() + (exdays*24*60*60*1000));
@@ -550,3 +587,135 @@ function findClassById(_id) {
     }
     return {};
 }
+
+var Class = function (id, __name, assigns_due){
+    
+    this._id = id;
+    this._name = __name;
+    this._total_assigns_due = assigns_due;
+    this._active = null;
+    this._assigns_due = null;
+    this._assigns = null;
+    
+    this._assign_groups = ['past-due', 'due-today', 'due-tomorrow', 'due-this-week', 'due-next-week', 'due-this-month', 'due-after-this-month', 'completed'];
+    
+    this.getID = function (){
+        return this._id;
+    };
+    
+    this.getName = function (){
+        return this._name;
+    };
+    
+    this.getTotalAssignsDue = function (){
+        return this._total_assigns_due;
+    };
+    
+    this.getActive = function (){
+        if (this._active != null) {
+            return this._active;
+        } else {
+            this.updateClassGet();
+            return this.getActive();
+        }
+    };
+    
+    this.updateClassGet = function (){
+        var _res = null;
+        
+        var _success_cb = function (response){
+            _res = response;
+        };
+        
+        var _error_cb = function (error){
+            throw error;
+        };
+        
+        performClassGetRequest(this._id, _success_cb, _error_cb);
+        
+        if (_res != null) {
+            this._active = _res['active'];
+            this._assigns_due = {};
+            //Parse Assignments Due
+            for (var index = 0; index < this._assign_groups.length; index ++) {
+                var _key = this._assign_groups[index];
+                this._assigns_due[_key] = _res['assigns-due'][_key];
+            }
+        }
+        
+    };
+    
+    
+};var User = function (display_name, email){
+    
+    this._display_name = display_name;
+    this._email = email;
+    this._total_assigns_due = null;
+    this._active_classes = null;
+    this._inactive_classes = null;
+    
+    this.getDisplayName = function (){
+        return this._display_name;
+    };
+    
+    this.getEmail = function (){
+        return this._email;
+    };
+    
+    this.updateClassList = function (){
+        var _res = null;
+        
+        var _success_cb = function (response){
+            _res = response;
+        };
+        
+        var _error_cb = function (error){
+            throw error;
+        };
+        
+        performClassListRequest(_success_cb, _error_cb);
+        
+        if (_res != null) {
+            this._total_assigns_due = _res['total-assigns-due'];
+            this._active_classes = [];
+            this._inactive_classes = [];
+            for (var index = 0; index < _res['active'].length; index ++) {
+                var _class = _res['active'][index];
+                this._active_classes.push(new Class(_class['id'], _class['name'], _class['assigns-due']));
+            }
+            for (var index = 0; index < _res['inactive'].length; index ++) {
+                var _class = _res['inactive'][index];
+                this._inactive_classes.push(new Class(_class['id'], _class['name'], 0));
+            }
+        }
+        
+    };
+    
+    this.getTotalAssignsDue = function (){
+        if (this._total_assigns_due != null) {
+            return this._total_assigns_due;
+        } else {
+            this.updateClassList();
+            return this.getTotalAssignsDue();
+        }
+    }
+    
+    this.getActiveClasses = function (){
+        if (this._active_classes != null) {
+            return this._active_classes;
+        } else {
+            this.updateClassList();
+            return this.getActiveClasses();
+        }
+    }
+    
+    this.getInactiveClasses = function (){
+        if (this._inactive_classes != null) {
+            return this._inactive_classes;
+        } else {
+            this.updateClassList();
+            return this.getInactiveClasses();
+        }
+    }
+    
+};

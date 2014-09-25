@@ -19,7 +19,7 @@ class SignIn(LoggedRequestHandler):
                 auth_token = AuthToken.create_authtoken((User.query_user(user_name))[0].key, self.request.remote_addr)
                 auth_token.put()
                 e = json.JSONEncoder()
-                res = {'auth_token' : auth_token.token, 'expires' : str(auth_token.expires), 'display_name': user.display_name}
+                res = {'auth_token' : auth_token.token, 'expires' : str(auth_token.expires), 'display_name': user.display_name, 'email': user.email}
                 self.response.status = "200 OK"
                 self.response.write(e.encode(res))
             else:
