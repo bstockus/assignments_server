@@ -19,12 +19,12 @@ var Class = function (id, __name, assigns_due){
     this._id = id;
     this._name = __name;
     this._total_assigns_due = assigns_due;
-    this._active = null;
-    this._assigns_due = null;
-    this._assigns = null;
+    this._active = undefined;
+    this._assigns_due = undefined;
+    this._assigns = undefined;
     
     this._assign_groups = ['past-due', 'due-today', 'due-tomorrow', 'due-this-week', 'due-next-week', 'due-this-month', 'due-after-this-month'];
-    this._assign_groups_with_completed = this._assign_groups.push('completed');
+    this._assign_groups_with_completed = ['past-due', 'due-today', 'due-tomorrow', 'due-this-week', 'due-next-week', 'due-this-month', 'due-after-this-month', 'completed'];
     
     this.getID = function (){
         return this._id;
@@ -33,13 +33,18 @@ var Class = function (id, __name, assigns_due){
     this.getName = function (){
         return this._name;
     };
+
+    this.setName = function (new_name){
+        this.modifyClass(new_name);
+        return this._name;
+    };
     
     this.getTotalAssignsDue = function (){
         return this._total_assigns_due;
     };
     
     this.getActive = function (){
-        if (this._active != null) {
+        if (this._active != undefined) {
             return this._active;
         } else {
             this.updateClassGet();
@@ -48,7 +53,7 @@ var Class = function (id, __name, assigns_due){
     };
 
     this.getAssignsDue = function (_period){
-        if (this._assigns_due != null) {
+        if (this._assigns_due != undefined) {
             return this._assigns_due[_period];
         } else {
             this.updateClassGet();
@@ -57,7 +62,7 @@ var Class = function (id, __name, assigns_due){
     };
 
     this.getAssigns = function (_period){
-        if (this._assigns != null) {
+        if (this._assigns != undefined) {
             return this._assigns[_period];
         } else {
             this.updateClassGet();
@@ -121,6 +126,21 @@ var Class = function (id, __name, assigns_due){
         }
         
     };
-    
+
+    this.modifyClass = function (new_name) {
+        var _res;
+        var _success_cb = function (_response){
+            _res = _response;
+        };
+        var _failure_cb = function (_error){
+            throw _error;
+        };
+        performClassUpdateRequest(this._id, new_name, null, _success_cb, _failure_cb);
+        this._name = new_name;
+    };
+
+    this.forClassSidebar = function (){
+        return {"id": this.getID(), "assigns-due": this.getTotalAssignsDue(), "name": this.getName()};
+    };
     
 };

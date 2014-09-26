@@ -10,6 +10,7 @@ function displayLoginModal() {
                 $(ID(modal(__modal))).modal('hide');
                 $("#loggedin-user").removeClass('hidden');
                 $("#display-name").text(res['display_name']);
+                _user = new User(res['display_name'], res['email']);
                 setTimeout( function() {
                     refreshClassSidebar();
                 }, 500);

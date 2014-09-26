@@ -1,38 +1,33 @@
+var _active_class_id;
+
 function updateClassSidebar() {
-    var html = (Handlebars.getTemplate("class_sidebar"))(_classes);
+    var html = (Handlebars.getTemplate("class_sidebar"))(_user.forClassSidebar());
     $("#sidebar").html(html);
-    
-    if (_classes['active'].length > 0) {
-        $("#" + _classes['active'][_active_class_idx]['id']).removeClass('active');
-        if (_active_class_idx >= _classes['active'].length) {
-            _active_class_idx = _classes['active'].length - 1;
+
+    if (_active_class_id === undefined && _user.getActiveClasses().length > 0) {
+        _active_class_id = _user.getActiveClasses()[0].getID();
+    }
+
+    if (_user.getActiveClasses().length > 0) {
+        $("#" + _user.getClassById(_active_class_id).getID()).removeClass('active');
+        if (_user.getClassById(_active_class_id) == null) {
+            _active_class_id = _user.getActiveClasses()[0].getID();
         }
-        $("#" + _classes['active'][_active_class_idx]['id']).addClass('active');
+        $("#" + _user.getClassById(_active_class_id).getID()).addClass('active');
         refreshActiveClass();
     
         $(".class-li").bind('click', function (event){
-            var __classes = _classes['active'];
-            var _class;
-            for (_class in __classes) {
-                var id = __classes[_class]['id'];
-                if (id == this.id) {
-                    $("#" + _classes['active'][_active_class_idx]['id']).removeClass('active');
-                    _active_class_idx = _class;
-                    $("#" + _classes['active'][_active_class_idx]['id']).addClass('active');
-                    refreshActiveClass();
-                } else if (id == "all") {
-                    //TODO: Implement procedure to show all classes available.
-                }
-            }
+            $(ID(_user.getClassById(_active_class_id).getID())).removeClass('active');
+            _active_class_id = this.id;
+            $(ID(_user.getClassById(_active_class_id).getID())).addClass('active');
+            refreshActiveClass();
         });
         
         $(".class-edit-btn").tooltip();
         
         $(".class-edit-btn").click(function (event){
             var _id = this.id.substring(9);
-            var _class = findClassById(_id);
-            var _name = _class['name'];
-            displayChangeClassNameModal(_name, _id);
+            _displayChangeClassNameModal(_id);
         });
         
         $(".class-delete-btn").tooltip();

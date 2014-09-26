@@ -53,3 +53,26 @@ function displayModal(_modal_name) {
     $(ID(lbl(_modal_name, "error"))).text("");
     $(ID(modal(_modal_name))).modal('show');
 }
+
+function setupModal(_modal_name, _submit_cb) {
+    var _cancel_btn = cancel_btn(_modal_name);
+    var _submit_btn = submit_btn(_modal_name);
+    var _progress_span = progress_span(_modal_name);
+    var _error_lbl = error_lbl(_modal_name);
+    var _modal = modal(_modal_name);
+    var _cancel_cb = function (){
+        unhide(_submit_btn);
+        unhide(_cancel_btn);
+        hide(_progress_span);
+    };
+    $(ID(_cancel_btn)).click(function (event){
+        $(ID(_modal)).modal('hide');
+    });
+    $(ID(_submit_btn)).click(function (event) {
+        hide(_submit_btn);
+        hide(_cancel_btn);
+        hide(_progress_span);
+        $(ID(_error_lbl)).text("");
+        _submit_cb(_cancel_cb);
+    });
+}

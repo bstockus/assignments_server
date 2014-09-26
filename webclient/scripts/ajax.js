@@ -60,6 +60,7 @@ function login(username, password) {
             res = JSON.parse(response);
             _auth_token = res['auth_token'];
             _expires = new Date(res['expires']+"Z");
+            _user = new User(res['display_name'], res['email']);
             $("#loggedin-user").removeClass('hidden');
             $("#display-name").text(res['display_name']);
             setTimeout( function() {
@@ -93,4 +94,97 @@ function performClassGetRequest(_id, _success_cb, _failure_cb) {
         }
     };
     performSyncAuthorizedAjaxRequest('GET', 'class/' + _id, "", _cb);
+}
+
+function performAssignUpdateRequest(_id, _name, _is_completed, _date_due, _success_cb, _failure_cb) {
+    var _cb = function (_status, _response){
+        if (_status == "200") {
+            _success_cb(JSON.parse(_response));
+        } else {
+            _failure_cb("");
+        }
+    };
+    var _req = {};
+    if (_name != null) {
+        _req['name'] = _name;
+    }
+    if (_is_completed != null) {
+        _req['completed'] = _is_completed;
+    }
+    if (_date_due != null) {
+        _req['due'] = {};
+        _req['due']['day'] = _date_due.getDate();
+        _req['due']['month'] = _date_due.getMonth() + 1;
+        _req['due']['year'] = _date_due.getFullYear();
+    }
+    performSyncAuthorizedAjaxRequest('POST', 'assign/' + _id, JSON.stringify(_req), _cb);
+}
+
+function performClassUpdateRequest(_id, _name, _active, _success_cb, _failure_cb) {
+    var _cb = function (_status, _response){
+        if (_status == "200") {
+            _success_cb(JSON.parse(_response));
+        } else {
+            _failure_cb("");
+        }
+    };
+    var _req = {};
+    if (_name != null) {
+        _req['name'] = _name;
+    }
+    if (_active != null) {
+        _req['active'] = _active;
+    }
+    performSyncAuthorizedAjaxRequest('POST', 'class/' + _id, JSON.stringify(_req), _cb);
+}
+
+function performClassDeleteRequest(_id, _success_cb, _failure_cb) {
+    var _cb = function (_status, _response){
+        if (_status == "204") {
+            _success_cb(JSON.parse(_response));
+        } else {
+            _failure_cb("");
+        }
+    };
+    performSyncAuthorizedAjaxRequest('DELETE', 'class/' + _id, "", _cb);
+}
+
+function performAssignDeleteRequest(_id, _success_cb, _failure_cb) {
+    var _cb = function (_status, _response){
+        if (_status == "204") {
+            _success_cb(JSON.parse(_response));
+        } else {
+            _failure_cb("");
+        }
+    };
+    performSyncAuthorizedAjaxRequest('DELETE', 'assign/' + _id, "", _cb);
+}
+
+function performClassCreateRequest(_name, _success_cb, _failure_cb) {
+    var _cb = function (_status, _response){
+        if (_status == "204") {
+            _success_cb(JSON.parse(_response));
+        } else {
+            _failure_cb("");
+        }
+    };
+    var _req = {"name": _name};
+    performSyncAuthorizedAjaxRequest('POST', 'class/', _req, _cb);
+}
+
+function performAssignCreateRequest(_name, _date_due, _success_cb, _failure_cb) {
+    var _cb = function (_status, _response){
+        if (_status == "204") {
+            _success_cb(JSON.parse(_response));
+        } else {
+            _failure_cb("");
+        }
+    };
+    var _req = {};
+    _req['name'] = _name;
+    _req['due'] = {};
+    _req['due']['day'] = _date_due.getDate();
+    _req['due']['month'] = _date_due.getMonth() + 1;
+    _req['due']['year'] = _date_due.getFullYear();
+    performSyncAuthorizedAjaxRequest('POST', 'class/' + _id + '/assign/', _req, _cb);
 }

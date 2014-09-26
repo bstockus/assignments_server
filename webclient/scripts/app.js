@@ -1,3 +1,5 @@
+var _user;
+
 $(function () {
     
     initalizeHandlebars();

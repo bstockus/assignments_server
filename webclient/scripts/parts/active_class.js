@@ -40,7 +40,7 @@ function updateActiveClass() {
 }
 
 function refreshActiveClass() {
-    var activeClassId = _classes['active'][_active_class_idx]['id'];
+    var activeClassId = _active_class_id;
     //Reload the Active Class Data
     var cb = function(status, response) {
         if (status = "200") {
