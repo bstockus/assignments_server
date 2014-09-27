@@ -21,7 +21,7 @@ class Assign(AuthenticatedRequestHandler):
         req = d.decode(self.request.body)
         if req.has_key('name') and req.has_key('due'):
             if req['due'].has_key('day') and req['due'].has_key('month') and req['due'].has_key('year'):
-                date = datetime.date(req['due']['year'], req['due']['month'], req['due']['day'])
+                date = datetime.date(req['due']['year'], req['due']['month'], req['due']['day'] + 1)
                 assign = Assignment.create_assignment(req['name'], _class.key, self.authenticated_user.key, date)
                 assign.put()
                 e = json.JSONEncoder()

@@ -9,18 +9,15 @@ function updateClassSidebar() {
     }
 
     if (_user.getActiveClasses().length > 0) {
-        $("#" + _user.getClassById(_active_class_id).getID()).removeClass('active');
+
         if (_user.getClassById(_active_class_id) == null) {
-            _active_class_id = _user.getActiveClasses()[0].getID();
+            changeActiveClass(_user.getActiveClasses()[0].getID());
         }
-        $("#" + _user.getClassById(_active_class_id).getID()).addClass('active');
-        refreshActiveClass();
     
         $(".class-li").bind('click', function (event){
-            $(ID(_user.getClassById(_active_class_id).getID())).removeClass('active');
-            _active_class_id = this.id;
-            $(ID(_user.getClassById(_active_class_id).getID())).addClass('active');
-            refreshActiveClass();
+            if (this.id != "all") {
+                changeActiveClass(this.id);
+            }
         });
         
         $(".class-edit-btn").tooltip();
@@ -46,16 +43,17 @@ function updateClassSidebar() {
     });
     
     $("#add-new-class-btn").click(function (event){
-        displayAddNewClassModal();
+        _displayAddNewClassModal();
     });
 }
 
+function changeActiveClass(_new_active_class_id) {
+    $(ID(_user.getClassById(_active_class_id).getID())).removeClass('active');
+    _active_class_id = _new_active_class_id;
+    $(ID(_user.getClassById(_active_class_id).getID())).addClass('active');
+    refreshActiveClass();
+}
+
 function refreshClassSidebar() {
-    var cb = function(status, response) {
-        if (status == "200") {
-            _classes = JSON.parse(response);
-            updateClassSidebar();
-        }
-    };
-    performAuthorizedAjaxRequest('GET', 'class/', {}, "", cb);
+    updateClassSidebar();
 }

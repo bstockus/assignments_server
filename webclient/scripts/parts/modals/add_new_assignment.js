@@ -42,3 +42,34 @@ function displayAddNewAssignmentModal(_class_name, _class_id) {
     $(ID(txt(__modal, "year-due"))).val(_year.toString());
     displayModal(__modal);
 }
+
+function _displayAddNewAssignmentModal() {
+    var __modal = "add-new-assignment";
+    var _date = new Date();
+    var _day = _date.getDate();
+    var _month = _date.getMonth() + 1;
+    var _year = _date.getFullYear();
+    var _init_cb = function () {
+        var _submit_cb = function (_cancel_cb){
+            try {
+                var _new_date = new Date(parseInt($(ID(txt(__modal, "year-due"))).val()), parseInt($(ID(select(__modal, "month-due"))).val()) - 1, parseInt($(ID(select(__modal, "day-due"))).val()), 0, 0, 0, 0);
+                var _new_assign = _user.getClassById(_active_class_id).addAssign($(ID(txt(__modal, "name"))).val(), _new_date);
+                $(ID(modal(__modal))).modal('hide');
+                updateActiveClass();
+                $("span.badge#" + _active_class_id).text(_user.getClassById(_active_class_id).getTotalAssignsDue());
+                $("#total-assigns-due-badge").text(_user.getTotalAssignsDue());
+            } catch (e) {
+                $(ID(error_lbl(__modal))).text(e);
+            }
+            _cancel_cb();
+        };
+        setupModal(__modal, _submit_cb);
+    };
+    loadModal(__modal, _init_cb);
+    $(ID(txt(__modal, "name"))).val("");
+    $(ID(span(__modal, "classname"))).text(_user.getClassById(_active_class_id).getName());
+    $(ID(select(__modal, "day-due"))).val(_day.toString());
+    $(ID(select(__modal, "month-due"))).val(_month.toString());
+    $(ID(txt(__modal, "year-due"))).val(_year.toString());
+    displayModal(__modal);
+}

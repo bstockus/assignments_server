@@ -162,19 +162,19 @@ function performAssignDeleteRequest(_id, _success_cb, _failure_cb) {
 
 function performClassCreateRequest(_name, _success_cb, _failure_cb) {
     var _cb = function (_status, _response){
-        if (_status == "204") {
+        if (_status == "201") {
             _success_cb(JSON.parse(_response));
         } else {
             _failure_cb("");
         }
     };
     var _req = {"name": _name};
-    performSyncAuthorizedAjaxRequest('POST', 'class/', _req, _cb);
+    performSyncAuthorizedAjaxRequest('POST', 'class/', JSON.stringify(_req), _cb);
 }
 
-function performAssignCreateRequest(_name, _date_due, _success_cb, _failure_cb) {
+function performAssignCreateRequest(_id, _name, _date_due, _success_cb, _failure_cb) {
     var _cb = function (_status, _response){
-        if (_status == "204") {
+        if (_status == "201") {
             _success_cb(JSON.parse(_response));
         } else {
             _failure_cb("");
@@ -186,5 +186,5 @@ function performAssignCreateRequest(_name, _date_due, _success_cb, _failure_cb) 
     _req['due']['day'] = _date_due.getDate();
     _req['due']['month'] = _date_due.getMonth() + 1;
     _req['due']['year'] = _date_due.getFullYear();
-    performSyncAuthorizedAjaxRequest('POST', 'class/' + _id + '/assign/', _req, _cb);
+    performSyncAuthorizedAjaxRequest('POST', 'class/' + _id + '/assign/', JSON.stringify(_req), _cb);
 }

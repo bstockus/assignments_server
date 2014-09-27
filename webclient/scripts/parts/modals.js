@@ -76,3 +76,4 @@ function setupModal(_modal_name, _submit_cb) {
         _submit_cb(_cancel_cb);
     });
 }
+

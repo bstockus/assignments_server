@@ -1,7 +1,7 @@
-var _classes = [];
+//var _classes = [];
 
-var _active_class_idx = 0;
-var _active_class = {};
+//var _active_class_idx = 0;
+//var _active_class = {};
 
 function findClassById(_id) {
     var __classes = _classes['active'];
@@ -14,8 +14,9 @@ function findClassById(_id) {
     return {};
 }
 
-var Class = function (id, __name, assigns_due){
-    
+var Class = function (__parent_user, id, __name, assigns_due){
+
+    this._parent_user = __parent_user;
     this._id = id;
     this._name = __name;
     this._total_assigns_due = assigns_due;
@@ -104,6 +105,7 @@ var Class = function (id, __name, assigns_due){
                     var __assign = __assigns[assignIndex];
                     if (__assign['completed']) {
                         this._assigns[_key].push(new Assign(
+                            this,
                             __assign['id'],
                             __assign['name'],
                             new Date(__assign['created']),
@@ -112,6 +114,7 @@ var Class = function (id, __name, assigns_due){
                             new Date(__assign['date-completed'])));
                     } else {
                         this._assigns[_key].push(new Assign(
+                            this,
                             __assign['id'],
                             __assign['name'],
                             new Date(__assign['created']),
@@ -127,6 +130,51 @@ var Class = function (id, __name, assigns_due){
         
     };
 
+    this.updateAssignPeriod = function (__assign, new_period, old_completed) {
+        var cur_period = this.getPeriodForAssign(__assign);
+        var filter_cb = function (e){
+            return (e != __assign);
+        };
+        this._assigns[cur_period] = this._assigns[cur_period].filter(filter_cb);
+        if (!old_completed) {
+            this._assigns_due[cur_period] -= 1;
+            this._total_assigns_due -= 1;
+            this._parent_user.updateTotalAssignsDue(-1);
+        }
+        if (!__assign.getIsCompleted()) {
+            this._assigns_due[new_period] += 1;
+            this._total_assigns_due += 1;
+            this._parent_user.updateTotalAssignsDue(1);
+        }
+        this._assigns[new_period].push(__assign);
+    };
+
+    this.getAssignByID = function (__id) {
+        for (var periodIndex = 0; periodIndex < this._assign_groups_with_completed.length; periodIndex ++) {
+            var period = this._assign_groups_with_completed[periodIndex];
+            var assigns = this.getAssigns(period);
+            for (var assignIndex = 0; assignIndex < assigns.length; assignIndex ++) {
+                if (assigns[assignIndex].getID() == __id) {
+                    return assigns[assignIndex];
+                }
+            }
+        }
+        return null;
+    };
+
+    this.getPeriodForAssign = function (__assign){
+        for (var periodIndex = 0; periodIndex < this._assign_groups_with_completed.length; periodIndex ++) {
+            var period = this._assign_groups_with_completed[periodIndex];
+            var assigns = this.getAssigns(period);
+            for (var assignIndex = 0; assignIndex < assigns.length; assignIndex ++) {
+                if (assigns[assignIndex] == __assign) {
+                    return period;
+                }
+            }
+        }
+        return null;
+    };
+
     this.modifyClass = function (new_name) {
         var _res;
         var _success_cb = function (_response){
@@ -139,8 +187,45 @@ var Class = function (id, __name, assigns_due){
         this._name = new_name;
     };
 
+    this.addAssign = function (__name, __date_due) {
+        var _res = null;
+
+        var _success_cb = function (response){
+            _res = response;
+        };
+
+        var _error_cb = function (error){
+            throw error;
+        };
+
+        performAssignCreateRequest(this.getID(), __name, __date_due, _success_cb, _error_cb);
+
+        if (_res != null) {
+            var _new_assign = new Assign(this, _res['id'], _res['name'], new Date(_res['created']), new Date(_res['due']), _res['completed'], null);
+            var period = _new_assign.getDuePeriod();
+            this._assigns[period].push(_new_assign);
+            if (!_new_assign.getIsCompleted()) {
+                this._assigns_due[period] += 1;
+                this._total_assigns_due += 1;
+                this._parent_user.updateTotalAssignsDue(1);
+            }
+            return _new_assign;
+        } else {
+            throw "Unable to create new assign (Client-Side).";
+        }
+    };
+
     this.forClassSidebar = function (){
         return {"id": this.getID(), "assigns-due": this.getTotalAssignsDue(), "name": this.getName()};
     };
-    
+
+    this.forDuegroup = function (_period){
+        var __assigns = this.getAssigns(_period);
+        var __assigns_out = [];
+        for (var index = 0; index < __assigns.length; index ++) {
+            __assigns_out.push(__assigns[index].forDuegroup());
+        }
+        return {"assigns-due": this.getAssignsDue(_period), "assigns": __assigns_out};
+    };
+
 };

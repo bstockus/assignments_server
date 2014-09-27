@@ -180,19 +180,19 @@ function performAssignDeleteRequest(_id, _success_cb, _failure_cb) {
 
 function performClassCreateRequest(_name, _success_cb, _failure_cb) {
     var _cb = function (_status, _response){
-        if (_status == "204") {
+        if (_status == "201") {
             _success_cb(JSON.parse(_response));
         } else {
             _failure_cb("");
         }
     };
     var _req = {"name": _name};
-    performSyncAuthorizedAjaxRequest('POST', 'class/', _req, _cb);
+    performSyncAuthorizedAjaxRequest('POST', 'class/', JSON.stringify(_req), _cb);
 }
 
-function performAssignCreateRequest(_name, _date_due, _success_cb, _failure_cb) {
+function performAssignCreateRequest(_id, _name, _date_due, _success_cb, _failure_cb) {
     var _cb = function (_status, _response){
-        if (_status == "204") {
+        if (_status == "201") {
             _success_cb(JSON.parse(_response));
         } else {
             _failure_cb("");
@@ -204,7 +204,7 @@ function performAssignCreateRequest(_name, _date_due, _success_cb, _failure_cb) 
     _req['due']['day'] = _date_due.getDate();
     _req['due']['month'] = _date_due.getMonth() + 1;
     _req['due']['year'] = _date_due.getFullYear();
-    performSyncAuthorizedAjaxRequest('POST', 'class/' + _id + '/assign/', _req, _cb);
+    performSyncAuthorizedAjaxRequest('POST', 'class/' + _id + '/assign/', JSON.stringify(_req), _cb);
 }function setCookie(cname, cvalue, exdays) {
     var d = new Date();
     d.setTime(d.getTime() + (exdays*24*60*60*1000));
@@ -361,19 +361,22 @@ function ID(_name) {
     // Display the Login Dialog Box
     displayLoginModal();
 }function updateActiveClass() {
-    
+
+    var _active_class = _user.getClassById(_active_class_id);
+
     var ids = ['past-due', 'due-today', 'due-tomorrow', 'due-this-week', 'due-next-week', 'due-this-month', 'due-after-this-month', 'completed'];
     var titles = ['Past Due', 'Due Today', 'Due Tomorrow', 'Due This Week', 'Due Next Week', 'Due This Month', 'Due After This Month', 'Completed'];
-    var show_due_dates = [true, false, false, true, true, true, true, true];
+    var show_due_dates = [true, false, false, true, true, true, true, false];
+    var show_assigns_dues = [true, true, true, true, true, true, true, false];
     
-    var html = (Handlebars.getTemplate("main_header"))(_active_class);
+    var html = (Handlebars.getTemplate("main_header"))({"name": _active_class.getName()});
     
     for (var idx = 0; idx < ids.length; idx ++) {
-        var id = ids[idx];
-        var title = titles[idx];
-        var show_due_date = show_due_dates[idx];
-        
-        var obj = {'id': id, 'title': title, 'assigns': _active_class['assigns'][id], 'assigns-due': _active_class['assigns-due'][id], 'show-due-dates': show_due_date};
+        var obj = _active_class.forDuegroup(ids[idx]);
+        obj['id'] = ids[idx];
+        obj['title'] = titles[idx];
+        obj['show-due-dates'] = show_due_dates[idx];
+        obj['show-assigns-due'] = show_assigns_dues[idx];
         
         html += (Handlebars.getTemplate("duegroup"))(obj);
         
@@ -389,53 +392,54 @@ function ID(_name) {
     
     $(".unchecked").click(function (event){
         var _id = this.id;
-        
+        var _assign = _user.getClassById(_active_class_id).getAssignByID(_id);
+        _assign.setIsCompleted(true);
+        updateActiveClass();
+        $("span.badge#" + _active_class_id).text(_user.getClassById(_active_class_id).getTotalAssignsDue());
+        $("#total-assigns-due-badge").text(_user.getTotalAssignsDue());
+    });
+
+    $(".checked").click(function (event){
+        var _id = this.id;
+        var _assign = _user.getClassById(_active_class_id).getAssignByID(_id);
+        _assign.setIsCompleted(false);
+        updateActiveClass();
+        $("span.badge#" + _active_class_id).text(_user.getClassById(_active_class_id).getTotalAssignsDue());
+        $("#total-assigns-due-badge").text(_user.getTotalAssignsDue());
     });
     
     $(".assign-name").popover();
     
     $("#add-new-assign-btn").click(function (event){
-        var active_class_id = _classes['active'][_active_class_idx]['id'];
-        var active_class_name = _classes['active'][_active_class_idx]['name'];
-        displayAddNewAssignmentModal(active_class_name, active_class_id);
+//        var __active_class = _user.getClassById(_active_class_id);
+//        var active_class_id = __active_class.getID();
+//        var active_class_name = __active_class.getName();
+//        displayAddNewAssignmentModal(active_class_name, active_class_id);
+        _displayAddNewAssignmentModal();
     });
 }
 
 function refreshActiveClass() {
-    var activeClassId = _classes['active'][_active_class_idx]['id'];
-    //Reload the Active Class Data
-    var cb = function(status, response) {
-        if (status = "200") {
-            _active_class = JSON.parse(response);
-            updateActiveClass();
-        }
-    };
-    performAuthorizedAjaxRequest('GET', 'class/' + activeClassId, {}, "", cb);
-}function updateClassSidebar() {
-    var html = (Handlebars.getTemplate("class_sidebar"))(_classes);
+    updateActiveClass();
+}var _active_class_id;
+
+function updateClassSidebar() {
+    var html = (Handlebars.getTemplate("class_sidebar"))(_user.forClassSidebar());
     $("#sidebar").html(html);
-    
-    if (_classes['active'].length > 0) {
-        $("#" + _classes['active'][_active_class_idx]['id']).removeClass('active');
-        if (_active_class_idx >= _classes['active'].length) {
-            _active_class_idx = _classes['active'].length - 1;
+
+    if (_active_class_id === undefined && _user.getActiveClasses().length > 0) {
+        _active_class_id = _user.getActiveClasses()[0].getID();
+    }
+
+    if (_user.getActiveClasses().length > 0) {
+
+        if (_user.getClassById(_active_class_id) == null) {
+            changeActiveClass(_user.getActiveClasses()[0].getID());
         }
-        $("#" + _classes['active'][_active_class_idx]['id']).addClass('active');
-        refreshActiveClass();
     
         $(".class-li").bind('click', function (event){
-            var __classes = _classes['active'];
-            var _class;
-            for (_class in __classes) {
-                var id = __classes[_class]['id'];
-                if (id == this.id) {
-                    $("#" + _classes['active'][_active_class_idx]['id']).removeClass('active');
-                    _active_class_idx = _class;
-                    $("#" + _classes['active'][_active_class_idx]['id']).addClass('active');
-                    refreshActiveClass();
-                } else if (id == "all") {
-                    //TODO: Implement procedure to show all classes available.
-                }
+            if (this.id != "all") {
+                changeActiveClass(this.id);
             }
         });
         
@@ -443,9 +447,7 @@ function refreshActiveClass() {
         
         $(".class-edit-btn").click(function (event){
             var _id = this.id.substring(9);
-            var _class = findClassById(_id);
-            var _name = _class['name'];
-            displayChangeClassNameModal(_name, _id);
+            _displayChangeClassNameModal(_id);
         });
         
         $(".class-delete-btn").tooltip();
@@ -464,18 +466,19 @@ function refreshActiveClass() {
     });
     
     $("#add-new-class-btn").click(function (event){
-        displayAddNewClassModal();
+        _displayAddNewClassModal();
     });
 }
 
+function changeActiveClass(_new_active_class_id) {
+    $(ID(_user.getClassById(_active_class_id).getID())).removeClass('active');
+    _active_class_id = _new_active_class_id;
+    $(ID(_user.getClassById(_active_class_id).getID())).addClass('active');
+    refreshActiveClass();
+}
+
 function refreshClassSidebar() {
-    var cb = function(status, response) {
-        if (status == "200") {
-            _classes = JSON.parse(response);
-            updateClassSidebar();
-        }
-    };
-    performAuthorizedAjaxRequest('GET', 'class/', {}, "", cb);
+    updateClassSidebar();
 }var _modals = {};
 
 function loadModal(name, _init_callback) {
@@ -530,7 +533,32 @@ function displayModal(_modal_name) {
     hide(span(_modal_name, "progress"));
     $(ID(lbl(_modal_name, "error"))).text("");
     $(ID(modal(_modal_name))).modal('show');
-}var _add_new_assignment_class_id = "";
+}
+
+function setupModal(_modal_name, _submit_cb) {
+    var _cancel_btn = cancel_btn(_modal_name);
+    var _submit_btn = submit_btn(_modal_name);
+    var _progress_span = progress_span(_modal_name);
+    var _error_lbl = error_lbl(_modal_name);
+    var _modal = modal(_modal_name);
+    var _cancel_cb = function (){
+        unhide(_submit_btn);
+        unhide(_cancel_btn);
+        hide(_progress_span);
+    };
+    $(ID(_cancel_btn)).click(function (event){
+        $(ID(_modal)).modal('hide');
+    });
+    $(ID(_submit_btn)).click(function (event) {
+        hide(_submit_btn);
+        hide(_cancel_btn);
+        hide(_progress_span);
+        $(ID(_error_lbl)).text("");
+        _submit_cb(_cancel_cb);
+    });
+}
+
+var _add_new_assignment_class_id = "";
 
 function displayAddNewAssignmentModal(_class_name, _class_id) {
     var __modal = "add-new-assignment";
@@ -573,66 +601,76 @@ function displayAddNewAssignmentModal(_class_name, _class_id) {
     $(ID(select(__modal, "month-due"))).val(_month.toString());
     $(ID(txt(__modal, "year-due"))).val(_year.toString());
     displayModal(__modal);
-}function displayAddNewClassModal() {
-    var __modal = "add-new-class";
-    var _init_callback = function () {
-        var _modal_callback = function (_status, response){
-            if (_status == "201") {
-                var res = JSON.parse(response);
-                var new_class_obj = {"id": res['id'], "name": res['name'], "assigns-due": 0};
-                _classes['active'].push(new_class_obj);
-                updateClassSidebar();
-                $(ID(modal(__modal))).modal('hide');
-            } else {
-                $(ID(error_lbl(__modal))).text("Unable to create a new class with that name.");
-            }
-        };
-        var _modal_submit_callback = function (_cb, _cancel_cb){
-            var _name = $(ID(txt(__modal,"name"))).val();
-            if (_name == "") {
-                _cancel_cb();
-                $(ID(error_lbl(__modal))).text("Class Name cannot be empty.");
-            } else {
-                var body = {'name': _name};
-                performAuthorizedAjaxRequest('POST', 'class/', {}, JSON.stringify(body), _cb);
-            }
-        };
-        initializeModal(__modal, _modal_callback, _modal_submit_callback);
-    };
-    loadModal(__modal, _init_callback);
-    $(ID(txt(__modal, "name"))).val("");
-    displayModal(__modal);
-}var _change_class_name_id = "";
+}
 
-function displayChangeClassNameModal(__name, _id) {
-    var __modal = "change-class-name";
+function _displayAddNewAssignmentModal() {
+    var __modal = "add-new-assignment";
+    var _date = new Date();
+    var _day = _date.getDate();
+    var _month = _date.getMonth() + 1;
+    var _year = _date.getFullYear();
     var _init_cb = function () {
-        var _modal_callback = function (_status, response){
-            if (_status == "200") {
-                var res = JSON.parse(response);
-                var _class = findClassById(res['id']);
-                _class['name'] = res['name'];
-                updateClassSidebar();
+        var _submit_cb = function (_cancel_cb){
+            try {
+                var _new_date = new Date(parseInt($(ID(txt(__modal, "year-due"))).val()), parseInt($(ID(select(__modal, "month-due"))).val()) - 1, parseInt($(ID(select(__modal, "day-due"))).val()), 0, 0, 0, 0);
+                var _new_assign = _user.getClassById(_active_class_id).addAssign($(ID(txt(__modal, "name"))).val(), _new_date);
                 $(ID(modal(__modal))).modal('hide');
-            } else {
-                $(ID(error_lbl(__modal))).text("Unable to change the name of the class.");
+                updateActiveClass();
+                $("span.badge#" + _active_class_id).text(_user.getClassById(_active_class_id).getTotalAssignsDue());
+                $("#total-assigns-due-badge").text(_user.getTotalAssignsDue());
+            } catch (e) {
+                $(ID(error_lbl(__modal))).text(e);
             }
+            _cancel_cb();
         };
-        var _modal_submit_callback = function (_cb, _cancel_cb){
-            var _name = $(ID(txt(__modal, "newname"))).val();
-            if (_name == "") {
-                _cancel_cb();
-                $(ID(error_lbl(__modal))).text("Class Name cannot be empty.");
-            } else {
-                var body = {'name': _name};
-                performAuthorizedAjaxRequest('POST', 'class/' + _change_class_name_id, {}, JSON.stringify(body), _cb);
-            }
-        };
-        initializeModal(__modal, _modal_callback, _modal_submit_callback);
+        setupModal(__modal, _submit_cb);
     };
     loadModal(__modal, _init_cb);
-    _change_class_name_id = _id;
-    $(ID(txt(__modal, "newname"))).val(__name);
+    $(ID(txt(__modal, "name"))).val("");
+    $(ID(span(__modal, "classname"))).text(_user.getClassById(_active_class_id).getName());
+    $(ID(select(__modal, "day-due"))).val(_day.toString());
+    $(ID(select(__modal, "month-due"))).val(_month.toString());
+    $(ID(txt(__modal, "year-due"))).val(_year.toString());
+    displayModal(__modal);
+}function _displayAddNewClassModal() {
+    var __modal = "add-new-class";
+    var _init_cb = function () {
+        var _submit_cb = function (_cancel_cb){
+            try {
+                var _new_class = _user.addClass($(ID(txt(__modal, "name"))).val());
+                $(ID(modal(__modal))).modal('hide');
+                updateClassSidebar();
+                changeActiveClass(_new_class.getID());
+            } catch (e) {
+                $(ID(error_lbl(__modal))).text(e);
+            }
+            _cancel_cb();
+        };
+        setupModal(__modal, _submit_cb);
+    };
+    loadModal(__modal, _init_cb);
+    $(ID(txt(__modal, "name"))).val("");
+    displayModal(__modal);
+}var _change_class_name_class;
+
+function _displayChangeClassNameModal(_id) {
+    var __modal = "change-class-name";
+    var _init_cb = function (){
+        var _submit_cb = function (_cancel_cb){
+            try {
+                _change_class_name_class.setName($(ID(txt(__modal, "newname"))).val());
+                updateClassSidebar();
+                $(ID(modal(__modal))).modal('hide');
+            } catch (e) {
+                $(ID(error_lbl(__modal))).text(e);
+            }
+            _cancel_cb();
+        };
+        setupModal(__modal, _submit_cb);
+    };
+    loadModal(__modal, _init_cb);
+    _change_class_name_class = _user.getClassById(_id);
+    $(ID(txt(__modal, "newname"))).val(_change_class_name_class.getName());
     displayModal(__modal);
 }function displayLoginModal() {
     var __modal = "login";
@@ -670,8 +708,9 @@ function displayChangeClassNameModal(__name, _id) {
     $(ID(txt(__modal, "username"))).val("");
     $(ID(txt(__modal, "password"))).val("");
     displayModal(__modal);
-}var Assign = function (__id, __name, __date_created, __date_due, __is_completed, __date_completed){
+}var Assign = function (__parent_class, __id, __name, __date_created, __date_due, __is_completed, __date_completed){
 
+    this._parent_class = __parent_class;
     this._id = __id;
     this._name = __name;
     this._date_created = __date_created;
@@ -718,8 +757,9 @@ function displayChangeClassNameModal(__name, _id) {
         return this._is_completed;
     };
 
-    this.modifyAssign = function (new_name, new_date_due, new_is_completed) {
+    this.modifyAssign = function (new_name, new_date_due, new_is_completed){
         var _res;
+        var old_completed = this.getIsCompleted();
         var _success_cb = function (_response){
             _res = _response;
         };
@@ -736,12 +776,61 @@ function displayChangeClassNameModal(__name, _id) {
         } else {
             this._date_completed = null;
         }
+        this._parent_class.updateAssignPeriod(this, this.getDuePeriod(), old_completed);
+
     };
 
-};var _classes = [];
+    this.getDuePeriod = function (){
+        var _today = new Date();
+        var _assign = new Date(this._date_due);
+        var _assignUTC = _assign.valueOf();
+        var _todayUTC = _today.valueOf();
+        var _delta = _assignUTC - _todayUTC;
+        var _deltaDays = Math.floor(_delta / (1000 * 60 * 60 * 24)) + 1;
+        if (_deltaDays < 0) {
+            if (this._is_completed) {
+                return "completed";
+            } else {
+                return "past-due";
+            }
+        } else if (_deltaDays == 0) {
+            return "due-today";
+        } else if (_deltaDays == 1) {
+            return "due-tomorrow";
+        } else if (_deltaDays < 7) {
+            return "due-this-week";
+        } else if (_deltaDays < 14) {
+            return "due-next-week";
+        } else if (_deltaDays < 28) {
+            return "due-this-month";
+        } else {
+            return "due-after-this-month";
+        }
+    };
 
-var _active_class_idx = 0;
-var _active_class = {};
+    this.forDuegroup = function (){
+        if (this.getIsCompleted()) {
+            return {
+                "id": this.getID(),
+                "due": this.getDateDue(),
+                "name": this.getName(),
+                "completed": this.getIsCompleted(),
+                "created": this.getDateCreated(),
+                "date-completed": this.getDateCompleted()};
+        } else {
+            return {
+                "id": this.getID(),
+                "due": this.getDateDue(),
+                "name": this.getName(),
+                "completed": this.getIsCompleted(),
+                "created": this.getDateCreated()};
+        }
+    };
+
+};//var _classes = [];
+
+//var _active_class_idx = 0;
+//var _active_class = {};
 
 function findClassById(_id) {
     var __classes = _classes['active'];
@@ -754,8 +843,9 @@ function findClassById(_id) {
     return {};
 }
 
-var Class = function (id, __name, assigns_due){
-    
+var Class = function (__parent_user, id, __name, assigns_due){
+
+    this._parent_user = __parent_user;
     this._id = id;
     this._name = __name;
     this._total_assigns_due = assigns_due;
@@ -764,13 +854,18 @@ var Class = function (id, __name, assigns_due){
     this._assigns = undefined;
     
     this._assign_groups = ['past-due', 'due-today', 'due-tomorrow', 'due-this-week', 'due-next-week', 'due-this-month', 'due-after-this-month'];
-    this._assign_groups_with_completed = this._assign_groups.push('completed');
+    this._assign_groups_with_completed = ['past-due', 'due-today', 'due-tomorrow', 'due-this-week', 'due-next-week', 'due-this-month', 'due-after-this-month', 'completed'];
     
     this.getID = function (){
         return this._id;
     };
     
     this.getName = function (){
+        return this._name;
+    };
+
+    this.setName = function (new_name){
+        this.modifyClass(new_name);
         return this._name;
     };
     
@@ -839,6 +934,7 @@ var Class = function (id, __name, assigns_due){
                     var __assign = __assigns[assignIndex];
                     if (__assign['completed']) {
                         this._assigns[_key].push(new Assign(
+                            this,
                             __assign['id'],
                             __assign['name'],
                             new Date(__assign['created']),
@@ -847,6 +943,7 @@ var Class = function (id, __name, assigns_due){
                             new Date(__assign['date-completed'])));
                     } else {
                         this._assigns[_key].push(new Assign(
+                            this,
                             __assign['id'],
                             __assign['name'],
                             new Date(__assign['created']),
@@ -861,8 +958,105 @@ var Class = function (id, __name, assigns_due){
         }
         
     };
-    
-    
+
+    this.updateAssignPeriod = function (__assign, new_period, old_completed) {
+        var cur_period = this.getPeriodForAssign(__assign);
+        var filter_cb = function (e){
+            return (e != __assign);
+        };
+        this._assigns[cur_period] = this._assigns[cur_period].filter(filter_cb);
+        if (!old_completed) {
+            this._assigns_due[cur_period] -= 1;
+            this._total_assigns_due -= 1;
+            this._parent_user.updateTotalAssignsDue(-1);
+        }
+        if (!__assign.getIsCompleted()) {
+            this._assigns_due[new_period] += 1;
+            this._total_assigns_due += 1;
+            this._parent_user.updateTotalAssignsDue(1);
+        }
+        this._assigns[new_period].push(__assign);
+    };
+
+    this.getAssignByID = function (__id) {
+        for (var periodIndex = 0; periodIndex < this._assign_groups_with_completed.length; periodIndex ++) {
+            var period = this._assign_groups_with_completed[periodIndex];
+            var assigns = this.getAssigns(period);
+            for (var assignIndex = 0; assignIndex < assigns.length; assignIndex ++) {
+                if (assigns[assignIndex].getID() == __id) {
+                    return assigns[assignIndex];
+                }
+            }
+        }
+        return null;
+    };
+
+    this.getPeriodForAssign = function (__assign){
+        for (var periodIndex = 0; periodIndex < this._assign_groups_with_completed.length; periodIndex ++) {
+            var period = this._assign_groups_with_completed[periodIndex];
+            var assigns = this.getAssigns(period);
+            for (var assignIndex = 0; assignIndex < assigns.length; assignIndex ++) {
+                if (assigns[assignIndex] == __assign) {
+                    return period;
+                }
+            }
+        }
+        return null;
+    };
+
+    this.modifyClass = function (new_name) {
+        var _res;
+        var _success_cb = function (_response){
+            _res = _response;
+        };
+        var _failure_cb = function (_error){
+            throw _error;
+        };
+        performClassUpdateRequest(this._id, new_name, null, _success_cb, _failure_cb);
+        this._name = new_name;
+    };
+
+    this.addAssign = function (__name, __date_due) {
+        var _res = null;
+
+        var _success_cb = function (response){
+            _res = response;
+        };
+
+        var _error_cb = function (error){
+            throw error;
+        };
+
+        performAssignCreateRequest(this.getID(), __name, __date_due, _success_cb, _error_cb);
+
+        if (_res != null) {
+            var _new_assign = new Assign(this, _res['id'], _res['name'], new Date(_res['created']), new Date(_res['due']), _res['completed'], null);
+            var period = _new_assign.getDuePeriod();
+            this._assigns[period].push(_new_assign);
+            if (!_new_assign.getIsCompleted()) {
+                this._assigns_due[period] += 1;
+                this._total_assigns_due += 1;
+                this._parent_user.updateTotalAssignsDue(1);
+            }
+            return _new_assign;
+        } else {
+            throw "Unable to create new assign (Client-Side).";
+        }
+    };
+
+    this.forClassSidebar = function (){
+        return {"id": this.getID(), "assigns-due": this.getTotalAssignsDue(), "name": this.getName()};
+    };
+
+    this.forDuegroup = function (_period){
+        var __assigns = this.getAssigns(_period);
+        var __assigns_out = [];
+        for (var index = 0; index < __assigns.length; index ++) {
+            __assigns_out.push(__assigns[index].forDuegroup());
+        }
+        return {"assigns-due": this.getAssignsDue(_period), "assigns": __assigns_out};
+    };
+
 };var User = function (display_name, email){
     
     this._display_name = display_name;
@@ -898,11 +1092,11 @@ var Class = function (id, __name, assigns_due){
             this._inactive_classes = [];
             for (var index = 0; index < _res['active'].length; index ++) {
                 var _class = _res['active'][index];
-                this._active_classes.push(new Class(_class['id'], _class['name'], _class['assigns-due']));
+                this._active_classes.push(new Class(this, _class['id'], _class['name'], _class['assigns-due']));
             }
             for (var index = 0; index < _res['inactive'].length; index ++) {
                 var _class = _res['inactive'][index];
-                this._inactive_classes.push(new Class(_class['id'], _class['name'], 0));
+                this._inactive_classes.push(new Class(this, _class['id'], _class['name'], 0));
             }
         }
         
@@ -955,7 +1149,7 @@ var Class = function (id, __name, assigns_due){
         performClassCreateRequest(_name, _success_cb, _error_cb);
 
         if (_res != null) {
-            var _new_class = new Class(_res['id'], _res['name'], 0);
+            var _new_class = new Class(this, _res['id'], _res['name'], 0);
             this._active_classes.push(_new_class);
             return _new_class;
         } else {
@@ -989,6 +1183,35 @@ var Class = function (id, __name, assigns_due){
             this.updateClassList();
             return this.getInactiveClasses();
         }
+    };
+
+    this.getClassById = function (_class_id){
+        var __active_classes = this.getActiveClasses();
+        for (var index = 0; index < __active_classes.length; index ++) {
+            if (__active_classes[index].getID() == _class_id) {
+                return __active_classes[index];
+            }
+        }
+        var __inactive_classes = this.getInactiveClasses();
+        for (var index = 0; index < __inactive_classes.length; index ++) {
+            if (__inactive_classes[index].getID() == _class_id) {
+                return __inactive_classes[index];
+            }
+        }
+        return null;
+    };
+
+    this.updateTotalAssignsDue = function (_delta_total_assigns_due) {
+        this._total_assigns_due += _delta_total_assigns_due;
+    };
+
+    this.forClassSidebar = function (){
+        var __active_classes = this.getActiveClasses();
+        var __active_classes_output = [];
+        for (var index = 0; index < __active_classes.length; index ++) {
+            __active_classes_output.push(__active_classes[index].forClassSidebar());
+        }
+        return {"total-assigns-due": this.getTotalAssignsDue(), "active": __active_classes_output};
     };
     
 };
