@@ -1,5 +1,29 @@
 <div class="main-header" id="main-header">
-    <span class="pull-right"><span id="add-new-assign-btn" class="crsr-pointer hover-btn"><i class="fa fa-plus"></i> New Assignment</span></span>
-    <h3>{{name}}</h3>
+    <span class="pull-right">
+        <span id="new-assignment-btn-lg">
+            <span class="add-new-assign-btn" class="crsr-pointer hover-btn">
+                <i class="fa fa-plus"></i> Assignment
+            </span>
+        </span>
+        <span id="new-assignment-btn-sm">
+            <div class="btn-group">
+                 <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                     <i class="fa fa-plus"></i> Add <span class="caret"></span>
+                 </button>
+                 <ul class="dropdown-menu" role="menu" id="add-new-dropdown-ul">
+                     <li><a class="add-new-assign-btn crsr-pointer">Assignment</a></li>
+                     <li><a class="add-new-class-btn crsr-pointer">Class</a></li>
+                 </ul>
+            </div>
+        </span>
+    </span>
+    <h3>
+        <span id="header-class-name">{{name}}</span>
+        <span id="header-class-btns">
+            <span class='fa fa-edit class-btn-icon crsr-pointer class-edit-btn' id='edit-btn-{{id}}'></span>
+            <span class='fa fa-trash class-btn-icon crsr-pointer class-delete-btn' id='delete-btn-{{id}}'></span>
+        </span>
+    </h3>
+
 </div>
 <div class="main-header-fix-block"></div>

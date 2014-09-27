@@ -1,0 +1,14 @@
+<li class='class-li-navbar' id='all'>
+    <a>
+        <span class='pull-right'><span class='badge' id='total-assigns-due-badge'>{{total-assigns-due}}</span></span>
+        All Classes
+    </a>
+</li>
+{{#each active}}
+    <li class='class-li-navbar crsr-pointer' id='{{id}}'>
+        <a>
+            <span class='pull-right'><span class='badge' id="{{id}}">{{assigns-due}}</span></span>
+            {{name}}
+        </a>
+    </li>
+{{/each}}

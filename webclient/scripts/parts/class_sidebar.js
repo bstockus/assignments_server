@@ -1,8 +1,9 @@
 var _active_class_id;
 
 function updateClassSidebar() {
-    var html = (Handlebars.getTemplate("class_sidebar"))(_user.forClassSidebar());
-    $("#sidebar").html(html);
+    var _obj = _user.forClassSidebar();
+    $("#sidebar").html((Handlebars.getTemplate("class_sidebar"))(_obj));
+    $("#navbar").html((Handlebars.getTemplate("class_navbar"))(_obj));
 
     if (_active_class_id === undefined && _user.getActiveClasses().length > 0) {
         _active_class_id = _user.getActiveClasses()[0].getID();
@@ -19,20 +20,17 @@ function updateClassSidebar() {
                 changeActiveClass(this.id);
             }
         });
-        
-        $(".class-edit-btn").tooltip();
-        
-        $(".class-edit-btn").click(function (event){
-            var _id = this.id.substring(9);
-            _displayChangeClassNameModal(_id);
+
+        $(".class-li-navbar").bind('click', function (event){
+            if (this.id != "all") {
+                changeActiveClass(this.id);
+            }
         });
         
-        $(".class-delete-btn").tooltip();
-        
-        $(".class-delete-btn").click(function (event){
-            //TODO: Implement Class Delete Functionality
-        });
+
     }
+
+    updateClassEditAndDeleteBtns();
     
     $(".class-li").hover(function (event) {
         $("#edit-btn-" + this.id).removeClass('hidden');
@@ -42,9 +40,7 @@ function updateClassSidebar() {
         $("#delete-btn-" + this.id).addClass('hidden');
     });
     
-    $("#add-new-class-btn").click(function (event){
-        _displayAddNewClassModal();
-    });
+    updateAddNewClassBtn();
 }
 
 function changeActiveClass(_new_active_class_id) {
@@ -56,4 +52,25 @@ function changeActiveClass(_new_active_class_id) {
 
 function refreshClassSidebar() {
     updateClassSidebar();
+}
+
+function updateAddNewClassBtn() {
+    $(".add-new-class-btn").click(function (event){
+        _displayAddNewClassModal();
+    });
+}
+
+function updateClassEditAndDeleteBtns() {
+    $(".class-edit-btn").tooltip();
+
+    $(".class-edit-btn").click(function (event){
+        var _id = this.id.substring(9);
+        _displayChangeClassNameModal(_id);
+    });
+
+    $(".class-delete-btn").tooltip();
+
+    $(".class-delete-btn").click(function (event){
+        //TODO: Implement Class Delete Functionality
+    });
 }

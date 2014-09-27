@@ -7,7 +7,7 @@ function updateActiveClass() {
     var show_due_dates = [true, false, false, true, true, true, true, false];
     var show_assigns_dues = [true, true, true, true, true, true, true, false];
     
-    var html = (Handlebars.getTemplate("main_header"))({"name": _active_class.getName()});
+    var html = (Handlebars.getTemplate("main_header"))({"name": _active_class.getName(), "id": _active_class.getID()});
     
     for (var idx = 0; idx < ids.length; idx ++) {
         var obj = _active_class.forDuegroup(ids[idx]);
@@ -21,7 +21,10 @@ function updateActiveClass() {
     }
     
     $("#main").html(html);
-    
+
+    updateClassEditAndDeleteBtns();
+    updateAddNewClassBtn();
+
     $(".unchecked").hover(function (event){
         $(".assign-cb#" + this.id).removeClass('fa-square').addClass('fa-check-square-o');
     }, function (event){
@@ -48,11 +51,7 @@ function updateActiveClass() {
     
     $(".assign-name").popover();
     
-    $("#add-new-assign-btn").click(function (event){
-//        var __active_class = _user.getClassById(_active_class_id);
-//        var active_class_id = __active_class.getID();
-//        var active_class_name = __active_class.getName();
-//        displayAddNewAssignmentModal(active_class_name, active_class_id);
+    $(".add-new-assign-btn").click(function (event){
         _displayAddNewAssignmentModal();
     });
 }

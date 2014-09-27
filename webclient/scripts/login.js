@@ -9,6 +9,7 @@ function signout() {
     
     // Empty the Sidebar and Class Area
     $("#sidebar").empty();
+    $("#navbar").empty();
     $("#main").empty();
 
     _user = undefined;

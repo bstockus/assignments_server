@@ -7,6 +7,9 @@ function _displayChangeClassNameModal(_id) {
             try {
                 _change_class_name_class.setName($(ID(txt(__modal, "newname"))).val());
                 updateClassSidebar();
+                if (_change_class_name_class.getID() == _active_class_id) {
+                    $(ID("header-class-name")).text(_change_class_name_class.getName());
+                }
                 $(ID(modal(__modal))).modal('hide');
             } catch (e) {
                 $(ID(error_lbl(__modal))).text(e);

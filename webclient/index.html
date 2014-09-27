@@ -47,6 +47,44 @@
                 padding-left: 5px;
                 cursor: pointer;
             }
+
+            @media (max-width: 768px) {
+                .assign-li {
+                    margin-left: 0;
+                    margin-right: 0;
+                }
+
+                .assign-list {
+                    padding-left: 0;
+                    margin-left: -5px;
+                }
+
+                .overdue-days {
+                    display: none;
+                }
+
+                #new-assignment-btn-lg {
+                    display: none;
+                }
+
+                #header-class-btns {
+                    padding-left: 5px;
+                }
+
+                #add-new-dropdown-ul {
+                    left: -80px;
+                }
+
+            }
+
+            @media (min-width: 768px) {
+
+                #new-assignment-btn-sm {
+                    display: none;
+                }
+
+            }
+
             .assign-li:hover {
                 background-color: #eee;
             }
@@ -104,6 +142,9 @@
                         <a class="navbar-brand" href="#">Assignments</a>
                     </div>
                     <div class="navbar-collapse collapse">
+                        <ul class="nav navbar-nav navbar-classes" id="navbar">
+                            <!-- NavBar Content Area -->
+                        </ul>
                         <ul class="nav navbar-nav navbar-right">
                             <li class="dropdown" id="loggedin-user">
                                 <a class="dropdown-toggle crsr-pointer" data-toggle="dropdown">
