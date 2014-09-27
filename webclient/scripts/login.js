@@ -10,8 +10,9 @@ function signout() {
     // Empty the Sidebar and Class Area
     $("#sidebar").empty();
     $("#main").empty();
-    
+
+    _user = undefined;
+
     // Display the Login Dialog Box
     displayLoginModal();
-    
 }

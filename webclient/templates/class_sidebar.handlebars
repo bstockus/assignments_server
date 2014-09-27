@@ -1,14 +1,14 @@
 <ul class='nav nav-sidebar'>
     <li class='class-li' id='all'>
         <a>
-            <span class='pull-right'><span class='badge'>{{total-assigns-due}}</span></span>
+            <span class='pull-right'><span class='badge' id='total-assigns-due-badge'>{{total-assigns-due}}</span></span>
             All Classes
         </a>
     </li>
     {{#each active}}
         <li class='class-li crsr-pointer' id='{{id}}'>
             <a>
-                <span class='pull-right'><span class='badge'>{{assigns-due}}</span></span>
+                <span class='pull-right'><span class='badge' id="{{id}}">{{assigns-due}}</span></span>
                 {{name}}
                 <span class='fa fa-edit class-btn-icon crsr-pointer hidden class-edit-btn' id='edit-btn-{{id}}' data-toggle="tooltip" title="Edit"></span>
                 <span class='fa fa-trash class-btn-icon crsr-pointer hidden class-delete-btn' id='delete-btn-{{id}}' data-toggle="tooltip" title="Delete"></span>

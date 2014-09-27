@@ -2,7 +2,9 @@
     <div class='panel panel-default'>
         <div class='panel-heading'>
             <h4 class='panel-title'>
-                <span class='pull-right'><span class='badge'>{{assigns-due}}</span></span>
+                {{#if show-assigns-due}}
+                    <span class='pull-right'><span class='badge'>{{assigns-due}}</span></span>
+                {{/if}}
                 <a data-toggle='collapse' data-parent='#main-accordion' href='#{{id}}'>{{title}}</a>
             </h4>
         </div>

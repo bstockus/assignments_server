@@ -22,7 +22,7 @@ class LoggedRequestHandler(webapp2.RequestHandler):
                     is_authed = True
                     user = (AuthToken.query_authtoken(auth_token))[0].user.get()
         super(LoggedRequestHandler, self).dispatch()
-        self.response.headers['Access-Control-Allow-Origin'] = 'null'
+        #self.response.headers['Access-Control-Allow-Origin'] = 'null'
         status = self.response.status
         if is_authed:
             SiteHit(request_url = path, request_ip_address = ip_addr, request_client = client, request_method = method, request_scheme = scheme, response_status = status, user = user.key, auth_token = auth_token).put()

@@ -1,33 +1,22 @@
-var _change_class_name_id = "";
+var _change_class_name_class;
 
-function displayChangeClassNameModal(__name, _id) {
+function _displayChangeClassNameModal(_id) {
     var __modal = "change-class-name";
-    var _init_cb = function () {
-        var _modal_callback = function (_status, response){
-            if (_status == "200") {
-                var res = JSON.parse(response);
-                var _class = findClassById(res['id']);
-                _class['name'] = res['name'];
+    var _init_cb = function (){
+        var _submit_cb = function (_cancel_cb){
+            try {
+                _change_class_name_class.setName($(ID(txt(__modal, "newname"))).val());
                 updateClassSidebar();
                 $(ID(modal(__modal))).modal('hide');
-            } else {
-                $(ID(error_lbl(__modal))).text("Unable to change the name of the class.");
+            } catch (e) {
+                $(ID(error_lbl(__modal))).text(e);
             }
+            _cancel_cb();
         };
-        var _modal_submit_callback = function (_cb, _cancel_cb){
-            var _name = $(ID(txt(__modal, "newname"))).val();
-            if (_name == "") {
-                _cancel_cb();
-                $(ID(error_lbl(__modal))).text("Class Name cannot be empty.");
-            } else {
-                var body = {'name': _name};
-                performAuthorizedAjaxRequest('POST', 'class/' + _change_class_name_id, {}, JSON.stringify(body), _cb);
-            }
-        };
-        initializeModal(__modal, _modal_callback, _modal_submit_callback);
+        setupModal(__modal, _submit_cb);
     };
     loadModal(__modal, _init_cb);
-    _change_class_name_id = _id;
-    $(ID(txt(__modal, "newname"))).val(__name);
+    _change_class_name_class = _user.getClassById(_id);
+    $(ID(txt(__modal, "newname"))).val(_change_class_name_class.getName());
     displayModal(__modal);
 }
