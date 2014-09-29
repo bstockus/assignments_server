@@ -20,9 +20,7 @@ function updateClassSidebar() {
         });
 
         $(".class-li-navbar").bind('click', function (event){
-            if (this.id != "all") {
-                changeActiveClass(this.id);
-            }
+            changeActiveClass(this.id);
         });
         
 

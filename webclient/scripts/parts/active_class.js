@@ -47,6 +47,8 @@ function updateActiveClass() {
 
         $("#main").html(html);
 
+        $("#header-class-btns").removeClass('hidden');
+
     } else {
 
         var html = (Handlebars.getTemplate("main_header"))({"name": "All Classes", "id": "all"});
@@ -71,6 +73,7 @@ function updateActiveClass() {
 
         $("#main").html(html);
 
+        $("#header-class-btns").addClass('hidden');
 
     }
 
