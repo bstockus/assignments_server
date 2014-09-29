@@ -12,6 +12,8 @@ function signout() {
     $("#navbar").empty();
     $("#main").empty();
 
+    $(".modal").modal('hide');
+
     _user = undefined;
 
     // Display the Login Dialog Box

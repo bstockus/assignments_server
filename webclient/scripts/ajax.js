@@ -3,6 +3,9 @@ var _password = "";
 var _auth_token = "";
 var _expires = "";
 
+var _retrying_ajax_request = false;
+var _retrying_ajax_request_count = 0;
+
 function performAjaxRequest(method, path, headers, body, callback) {
     url = _base_url + path;
     $.ajax({
@@ -33,7 +36,22 @@ function performAuthorizedAjaxRequest(method, path, headers, body, callback) {
     });
 }
 
+function performSyncAjaxRequest(method, path, body, callback) {
+    $.ajax({
+        url: _base_url + path,
+        type: method,
+        data: body,
+        x_callback: callback,
+        dataType: "json",
+        async: false,
+        complete: function(jqXHR, status) {
+            this.x_callback(jqXHR.status, jqXHR.responseText);
+        }
+    });
+}
+
 function performSyncAuthorizedAjaxRequest(method, path, body, callback) {
+    console.log("performSyncAuthorizedAjaxRequest(Enter): [" + method + "]" + path);
     $.ajax({
         url: _base_url + path,
         type: method,
@@ -43,7 +61,31 @@ function performSyncAuthorizedAjaxRequest(method, path, body, callback) {
         headers: {"X-Assignments-Auth-Token": _auth_token},
         async: false,
         complete: function(jqXHR, status) {
-            this.x_callback(jqXHR.status, jqXHR.responseText);
+            //console.log("performSyncAuthorizedAjaxRequest(Complete Callback): [" + method + "]" + path + " {Status:" + jqXHR.status + "}");
+            if (jqXHR.status == "401") {
+                if (_retrying_ajax_request_count == 0) {
+                    if (!performReLoginRequest()) {
+                        _retrying_ajax_request_count = 0;
+                        signout();
+                    }
+                }
+                if (_retrying_ajax_request_count < 5) {
+                    var _count = _retrying_ajax_request_count;
+                    //console.log("performSyncAuthorizedAjaxRequest(Retry Begin): [" + method + "]" + path + "{Attempt:" + _count + "}");
+                    var y = 0;
+                    for (var x = 0; x < 100000000; x ++) {
+                        y += x;
+                    }
+                    _retrying_ajax_request_count += 1;
+                    performSyncAuthorizedAjaxRequest(method, path, body, callback);
+                    //console.log("performSyncAuthorizedAjaxRequest(Retry End): [" + method + "]" + path + "{Attempt:" + _count + "}");
+                } else {
+                    signout();
+                }
+            } else {
+                _retrying_ajax_request_count = 0;
+                this.x_callback(jqXHR.status, jqXHR.responseText);
+            }
         }
     });
 }
@@ -55,7 +97,7 @@ function login(username, password) {
     _username = username;
     _password = password;
     var req_data = {'user_name':_username, 'password':_password};
-    var cb = function(status, response) {
+    var cb = function(status, response){
         if (status == "200") {
             res = JSON.parse(response);
             _auth_token = res['auth_token'];
@@ -72,6 +114,23 @@ function login(username, password) {
         }
     }
     performAjaxRequest('POST', 'signin', {}, JSON.stringify(req_data), cb);
+}
+
+function performReLoginRequest() {
+    var _loginStatus = false;
+    if (checkCookie('username') && checkCookie('password') && checkCookie('good')) {
+        var req_data = {'user_name': getCookie('username'), 'password': getCookie('password')};
+        var cb = function (status, response){
+            if (status == 200) {
+                res = JSON.parse(response);
+                _auth_token = res['auth_token'];
+                _expires = new Date(res['expires'] + "Z");
+                _loginStatus = true;
+            }
+        }
+        performSyncAjaxRequest('POST', 'signin', JSON.stringify(req_data), cb);
+    }
+    return _loginStatus;
 }
 
 function performClassListRequest(_success_cb, _failure_cb) {
@@ -174,6 +233,7 @@ function performClassCreateRequest(_name, _success_cb, _failure_cb) {
 
 function performAssignCreateRequest(_id, _name, _date_due, _success_cb, _failure_cb) {
     var _cb = function (_status, _response){
+        //console.log("performAssignCreateRequest(Callback)");
         if (_status == "201") {
             _success_cb(JSON.parse(_response));
         } else {

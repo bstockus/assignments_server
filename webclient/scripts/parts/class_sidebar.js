@@ -1,4 +1,4 @@
-var _active_class_id;
+var _active_class_id = 'all';
 
 function updateClassSidebar() {
     var _obj = _user.forClassSidebar();
@@ -16,9 +16,7 @@ function updateClassSidebar() {
         }
     
         $(".class-li").bind('click', function (event){
-            if (this.id != "all") {
-                changeActiveClass(this.id);
-            }
+            changeActiveClass(this.id);
         });
 
         $(".class-li-navbar").bind('click', function (event){
@@ -30,6 +28,8 @@ function updateClassSidebar() {
 
     }
 
+    updateAllClassAssignsDue();
+    updateTotalAssignsDue();
     updateClassEditAndDeleteBtns();
     
     $(".class-li").hover(function (event) {
@@ -44,9 +44,9 @@ function updateClassSidebar() {
 }
 
 function changeActiveClass(_new_active_class_id) {
-    $(ID(_user.getClassById(_active_class_id).getID())).removeClass('active');
+    $(ID(_active_class_id)).removeClass('active');
     _active_class_id = _new_active_class_id;
-    $(ID(_user.getClassById(_active_class_id).getID())).addClass('active');
+    $(ID(_active_class_id)).addClass('active');
     refreshActiveClass();
 }
 

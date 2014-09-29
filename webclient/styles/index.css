@@ -59,7 +59,7 @@ body {
 @media (max-width: 768px) {
 
     .main-header {
-        margin-left: -20px;
+        margin-left: 0;
     }
 
 }
@@ -67,7 +67,7 @@ body {
 @media (min-width: 768px) {
 
     .main-header {
-        margin-left: -40px;
+        margin-left: 0;
     }
 
     .navbar-classes {

@@ -17,7 +17,7 @@
                                 {{> assign_cb}}
                                 <b>
                                     <span class='pull-right'><span class='text-danger overdue-days'>{{prettyDaysOverdue due}}</span> {{prettyDate due}}</span>
-                                    {{> assign_name}}
+                                    {{class-name}}: {{> assign_name}}
                                 </b>
                             </li>
                         {{/each}}
@@ -26,7 +26,7 @@
                             <li class='assign-li' id='{{id}}'>
                                 {{> assign_cb}}
                                 <b>
-                                    {{> assign_name}}
+                                    {{class-name}}: {{> assign_name}}
                                 </b>
                             </li>
                         {{/each}}

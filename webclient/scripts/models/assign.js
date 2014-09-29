@@ -101,6 +101,7 @@ var Assign = function (__parent_class, __id, __name, __date_created, __date_due,
     this.forDuegroup = function (){
         if (this.getIsCompleted()) {
             return {
+                "class-name": this._parent_class.getName(),
                 "id": this.getID(),
                 "due": this.getDateDue(),
                 "name": this.getName(),
@@ -109,6 +110,7 @@ var Assign = function (__parent_class, __id, __name, __date_created, __date_due,
                 "date-completed": this.getDateCompleted()};
         } else {
             return {
+                "class-name": this._parent_class.getName(),
                 "id": this.getID(),
                 "due": this.getDateDue(),
                 "name": this.getName(),

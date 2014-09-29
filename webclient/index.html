@@ -10,13 +10,14 @@
         <title>Assignments</title>
 
         <!-- Bootstrap core CSS -->
-        <link rel="stylesheet" href="lib/bootstrap/css/bootstrap.min.css">
+        <link rel="stylesheet" href="lib/bootstrap/css/bootstrap.min.css" />
 
         <!-- Font Awesome CSS -->
-        <link href="lib/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+        <link href="lib/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
 
         <!-- Custom styles for this template -->
-        <link href="styles/index.css" rel="stylesheet">
+        <link href="styles/index.css" rel="stylesheet" />
+        <link href="styles/panel-mod.css" rel="stylesheet" />
         
         <style type="text/css">
             .ralign-0margin-0padding {
@@ -41,23 +42,19 @@
                 font-size: 20px;
             }
             .assign-li {
-                margin-right: 20px;
-                margin-left: -10px;
-                padding-right: 5px;
-                padding-left: 5px;
+                margin-right: 0;
+                margin-left: 0;
+                padding-right: 30px;
+                padding-left: 30px;
                 cursor: pointer;
             }
 
-            @media (max-width: 768px) {
-                .assign-li {
-                    margin-left: 0;
-                    margin-right: 0;
-                }
+            .assign-list {
+                margin-bottom: 0;
+                padding-left: 0;
+            }
 
-                .assign-list {
-                    padding-left: 0;
-                    margin-left: -5px;
-                }
+            @media (max-width: 768px) {
 
                 .overdue-days {
                     display: none;
@@ -73,6 +70,11 @@
 
                 #add-new-dropdown-ul {
                     left: -80px;
+                }
+
+                .assign-li {
+                    padding-right: 5px;
+                    padding-left: 5px;
                 }
 
             }
@@ -126,6 +128,45 @@
             .popover-right {
                 padding-left: 10px;
             }
+
+            /* Panel Mods */
+
+            #main {
+                padding-left: 0;
+                padding-right: 0;
+                padding-top: 0;
+            }
+
+            div.panel {
+                border-left-width: 0;
+                border-right-width: 0;
+                border-top-width: 1px;
+                border-bottom-width: 0.5px;
+                border-radius: 0 !important;
+            }
+
+            div.panel-heading {
+                border-top-left-radius: 0;
+                border-top-right-radius: 0;
+            }
+
+            div.panel-group {
+                margin-bottom: 0;
+                border-radius: 0 !important;
+            }
+
+            div.panel-body {
+                padding-top: 0;
+                padding-bottom: 0;
+                padding-left: 0;
+                padding-right: 0;
+            }
+
+            .duegroup-title {
+                font-size: 18px;
+                vertical-align: middle;
+            }
+
         </style>
 
     </head>
