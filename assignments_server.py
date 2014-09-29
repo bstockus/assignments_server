@@ -11,6 +11,8 @@ import Handlers.User.User
 import Handlers.Class
 import Handlers.Assign
 
+import Cron.CleanStaleAuthTokens
+
 class IndexRedirect(LoggedRequestHandler):
     def get(self):
         self.redirect('/web/index.html')
@@ -32,6 +34,7 @@ routes = [
     webapp2.Route(r'/api/class/<class_id>/assign/', handler='Handlers.Assign.Assign:create', name='assign-create', methods=['POST']),
     webapp2.Route(r'/api/assign/<assign_id>', handler='Handlers.Assign.Assign:update', name='assign-update', methods=['POST']),
     webapp2.Route(r'/api/assign/<assign_id>', handler='Handlers.Assign.Assign:delete', name='assign-delete', methods=['DELETE']),
+    webapp2.Route(r'/cron/clean_stale_auth_tokens', handler='Cron.CleanStaleAuthTokens.CleanStaleAuthTokens:do', name='cron-clean-stale-auth-tokens', methods=['GET']),
     ('/api/signin', Handlers.User.SignIn.SignIn),
     ('/api/renew', Handlers.User.Renew.Renew),
     ('/api/signout', Handlers.User.SignOut.SignOut),

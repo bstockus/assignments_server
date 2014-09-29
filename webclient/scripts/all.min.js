@@ -354,6 +354,7 @@ function ID(_name) {
     
     // Empty the Sidebar and Class Area
     $("#sidebar").empty();
+    $("#navbar").empty();
     $("#main").empty();
 
     _user = undefined;
@@ -369,7 +370,7 @@ function ID(_name) {
     var show_due_dates = [true, false, false, true, true, true, true, false];
     var show_assigns_dues = [true, true, true, true, true, true, true, false];
     
-    var html = (Handlebars.getTemplate("main_header"))({"name": _active_class.getName()});
+    var html = (Handlebars.getTemplate("main_header"))({"name": _active_class.getName(), "id": _active_class.getID()});
     
     for (var idx = 0; idx < ids.length; idx ++) {
         var obj = _active_class.forDuegroup(ids[idx]);
@@ -383,7 +384,10 @@ function ID(_name) {
     }
     
     $("#main").html(html);
-    
+
+    updateClassEditAndDeleteBtns();
+    updateAddNewClassBtn();
+
     $(".unchecked").hover(function (event){
         $(".assign-cb#" + this.id).removeClass('fa-square').addClass('fa-check-square-o');
     }, function (event){
@@ -410,11 +414,7 @@ function ID(_name) {
     
     $(".assign-name").popover();
     
-    $("#add-new-assign-btn").click(function (event){
-//        var __active_class = _user.getClassById(_active_class_id);
-//        var active_class_id = __active_class.getID();
-//        var active_class_name = __active_class.getName();
-//        displayAddNewAssignmentModal(active_class_name, active_class_id);
+    $(".add-new-assign-btn").click(function (event){
         _displayAddNewAssignmentModal();
     });
 }
@@ -424,8 +424,9 @@ function refreshActiveClass() {
 }var _active_class_id;
 
 function updateClassSidebar() {
-    var html = (Handlebars.getTemplate("class_sidebar"))(_user.forClassSidebar());
-    $("#sidebar").html(html);
+    var _obj = _user.forClassSidebar();
+    $("#sidebar").html((Handlebars.getTemplate("class_sidebar"))(_obj));
+    $("#navbar").html((Handlebars.getTemplate("class_navbar"))(_obj));
 
     if (_active_class_id === undefined && _user.getActiveClasses().length > 0) {
         _active_class_id = _user.getActiveClasses()[0].getID();
@@ -442,20 +443,17 @@ function updateClassSidebar() {
                 changeActiveClass(this.id);
             }
         });
-        
-        $(".class-edit-btn").tooltip();
-        
-        $(".class-edit-btn").click(function (event){
-            var _id = this.id.substring(9);
-            _displayChangeClassNameModal(_id);
+
+        $(".class-li-navbar").bind('click', function (event){
+            if (this.id != "all") {
+                changeActiveClass(this.id);
+            }
         });
         
-        $(".class-delete-btn").tooltip();
-        
-        $(".class-delete-btn").click(function (event){
-            //TODO: Implement Class Delete Functionality
-        });
+
     }
+
+    updateClassEditAndDeleteBtns();
     
     $(".class-li").hover(function (event) {
         $("#edit-btn-" + this.id).removeClass('hidden');
@@ -465,9 +463,7 @@ function updateClassSidebar() {
         $("#delete-btn-" + this.id).addClass('hidden');
     });
     
-    $("#add-new-class-btn").click(function (event){
-        _displayAddNewClassModal();
-    });
+    updateAddNewClassBtn();
 }
 
 function changeActiveClass(_new_active_class_id) {
@@ -479,6 +475,27 @@ function changeActiveClass(_new_active_class_id) {
 
 function refreshClassSidebar() {
     updateClassSidebar();
+}
+
+function updateAddNewClassBtn() {
+    $(".add-new-class-btn").click(function (event){
+        _displayAddNewClassModal();
+    });
+}
+
+function updateClassEditAndDeleteBtns() {
+    $(".class-edit-btn").tooltip();
+
+    $(".class-edit-btn").click(function (event){
+        var _id = this.id.substring(9);
+        _displayChangeClassNameModal(_id);
+    });
+
+    $(".class-delete-btn").tooltip();
+
+    $(".class-delete-btn").click(function (event){
+        //TODO: Implement Class Delete Functionality
+    });
 }var _modals = {};
 
 function loadModal(name, _init_callback) {
@@ -660,6 +677,9 @@ function _displayChangeClassNameModal(_id) {
             try {
                 _change_class_name_class.setName($(ID(txt(__modal, "newname"))).val());
                 updateClassSidebar();
+                if (_change_class_name_class.getID() == _active_class_id) {
+                    $(ID("header-class-name")).text(_change_class_name_class.getName());
+                }
                 $(ID(modal(__modal))).modal('hide');
             } catch (e) {
                 $(ID(error_lbl(__modal))).text(e);
