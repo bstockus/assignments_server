@@ -216,16 +216,54 @@ var Class = function (__parent_user, id, __name, assigns_due){
     };
 
     this.forClassSidebar = function (){
-        return {"id": this.getID(), "assigns-due": this.getTotalAssignsDue(), "name": this.getName()};
+        var _show_assigns_due = false;
+        if (this.getTotalAssignsDue() > 0) {
+            _show_assigns_due = true;
+        }
+        return {"id": this.getID(), "assigns-due": this.getTotalAssignsDue(), "name": this.getName(), "show-assigns-due": _show_assigns_due};
+    };
+
+    this.forAllDuegroup = function (_period){
+        var __assigns_out = [];
+        var __assigns = this.getAssigns(_period);
+        for (var index = 0; index < __assigns.length; index ++) {
+            __assigns_out.push(__assigns[index].forDuegroup());
+        }
+        return __assigns_out;
     };
 
     this.forDuegroup = function (_period){
         var __assigns = this.getAssigns(_period);
+        var __incompleted_assigns = __assigns.filter(function (e){
+            return !e.getIsCompleted();
+        });
+        var __completed_assigns = __assigns.filter(function (e){
+            return e.getIsCompleted();
+        });
+
+        var _sort_function = function (a, b){
+            return (a.getDateDue().valueOf() - b.getDateDue().valueOf());
+        };
+
+        __incompleted_assigns.sort(_sort_function);
+        __completed_assigns.sort(_sort_function);
+
         var __assigns_out = [];
-        for (var index = 0; index < __assigns.length; index ++) {
-            __assigns_out.push(__assigns[index].forDuegroup());
+        for (var index = 0; index < __incompleted_assigns.length; index ++) {
+            __assigns_out.push(__incompleted_assigns[index].forDuegroup());
+        }
+        for (var index = 0; index < __completed_assigns.length; index ++) {
+            __assigns_out.push(__completed_assigns[index].forDuegroup());
         }
         return {"assigns-due": this.getAssignsDue(_period), "assigns": __assigns_out};
+    };
+
+    this.isThereClassesForDuegroup = function (_period){
+        if (this.getAssigns(_period).length == 0) {
+            return false;
+        } else {
+            return true;
+        }
     };
 
 };

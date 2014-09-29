@@ -1,0 +1,4 @@
+cron:
+- description: Daily Stale AuthTokens Cleaning Task
+  url: /cron/clean_stale_auth_tokens
+  schedule: every 24 hours
