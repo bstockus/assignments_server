@@ -105,8 +105,7 @@
         var cb = function (status, response) {
             $("#main").removeClass('busy');
             if (status == "201") {
-                //$("#results").modal('show');
-                $('#results').modal('show');
+                console.log("User succesfully created!");
                 $('#results').modal('show');
             } else {
                 $("#error-text").text("An error has occured! Please try again.");

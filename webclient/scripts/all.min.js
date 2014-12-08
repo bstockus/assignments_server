@@ -21,6 +21,9 @@ var _password = "";
 var _auth_token = "";
 var _expires = "";
 
+var _retrying_ajax_request = false;
+var _retrying_ajax_request_count = 0;
+
 function performAjaxRequest(method, path, headers, body, callback) {
     url = _base_url + path;
     $.ajax({
@@ -51,7 +54,22 @@ function performAuthorizedAjaxRequest(method, path, headers, body, callback) {
     });
 }
 
+function performSyncAjaxRequest(method, path, body, callback) {
+    $.ajax({
+        url: _base_url + path,
+        type: method,
+        data: body,
+        x_callback: callback,
+        dataType: "json",
+        async: false,
+        complete: function(jqXHR, status) {
+            this.x_callback(jqXHR.status, jqXHR.responseText);
+        }
+    });
+}
+
 function performSyncAuthorizedAjaxRequest(method, path, body, callback) {
+    console.log("performSyncAuthorizedAjaxRequest(Enter): [" + method + "]" + path);
     $.ajax({
         url: _base_url + path,
         type: method,
@@ -61,7 +79,31 @@ function performSyncAuthorizedAjaxRequest(method, path, body, callback) {
         headers: {"X-Assignments-Auth-Token": _auth_token},
         async: false,
         complete: function(jqXHR, status) {
-            this.x_callback(jqXHR.status, jqXHR.responseText);
+            //console.log("performSyncAuthorizedAjaxRequest(Complete Callback): [" + method + "]" + path + " {Status:" + jqXHR.status + "}");
+            if (jqXHR.status == "401") {
+                if (_retrying_ajax_request_count == 0) {
+                    if (!performReLoginRequest()) {
+                        _retrying_ajax_request_count = 0;
+                        signout();
+                    }
+                }
+                if (_retrying_ajax_request_count < 5) {
+                    var _count = _retrying_ajax_request_count;
+                    //console.log("performSyncAuthorizedAjaxRequest(Retry Begin): [" + method + "]" + path + "{Attempt:" + _count + "}");
+                    var y = 0;
+                    for (var x = 0; x < 100000000; x ++) {
+                        y += x;
+                    }
+                    _retrying_ajax_request_count += 1;
+                    performSyncAuthorizedAjaxRequest(method, path, body, callback);
+                    //console.log("performSyncAuthorizedAjaxRequest(Retry End): [" + method + "]" + path + "{Attempt:" + _count + "}");
+                } else {
+                    signout();
+                }
+            } else {
+                _retrying_ajax_request_count = 0;
+                this.x_callback(jqXHR.status, jqXHR.responseText);
+            }
         }
     });
 }
@@ -73,7 +115,7 @@ function login(username, password) {
     _username = username;
     _password = password;
     var req_data = {'user_name':_username, 'password':_password};
-    var cb = function(status, response) {
+    var cb = function(status, response){
         if (status == "200") {
             res = JSON.parse(response);
             _auth_token = res['auth_token'];
@@ -90,6 +132,23 @@ function login(username, password) {
         }
     }
     performAjaxRequest('POST', 'signin', {}, JSON.stringify(req_data), cb);
+}
+
+function performReLoginRequest() {
+    var _loginStatus = false;
+    if (checkCookie('username') && checkCookie('password') && checkCookie('good')) {
+        var req_data = {'user_name': getCookie('username'), 'password': getCookie('password')};
+        var cb = function (status, response){
+            if (status == 200) {
+                res = JSON.parse(response);
+                _auth_token = res['auth_token'];
+                _expires = new Date(res['expires'] + "Z");
+                _loginStatus = true;
+            }
+        }
+        performSyncAjaxRequest('POST', 'signin', JSON.stringify(req_data), cb);
+    }
+    return _loginStatus;
 }
 
 function performClassListRequest(_success_cb, _failure_cb) {
@@ -192,6 +251,7 @@ function performClassCreateRequest(_name, _success_cb, _failure_cb) {
 
 function performAssignCreateRequest(_id, _name, _date_due, _success_cb, _failure_cb) {
     var _cb = function (_status, _response){
+        //console.log("performAssignCreateRequest(Callback)");
         if (_status == "201") {
             _success_cb(JSON.parse(_response));
         } else {
@@ -357,33 +417,90 @@ function ID(_name) {
     $("#navbar").empty();
     $("#main").empty();
 
+    $(".modal").modal('hide');
+
     _user = undefined;
 
     // Display the Login Dialog Box
     displayLoginModal();
-}function updateActiveClass() {
+}var _active_class_collapse_state_cache = {};
 
-    var _active_class = _user.getClassById(_active_class_id);
+function _checkActiveClassCollapseStateCacheClassExists(_class_id) {
+    if (_active_class_collapse_state_cache[_class_id] === undefined) {
+        _active_class_collapse_state_cache[_class_id] = {'past-due': false, 'due-today': false, 'due-tomorrow': false, 'due-this-week': false, 'due-next-week': false, 'due-this-month': false, 'due-after-this-month': false, 'completed': false};
+    }
+}
+
+function getActiveClassCollapseStateCacheForClass(_class_id, _duegroup_id) {
+    _checkActiveClassCollapseStateCacheClassExists(_class_id);
+    return _active_class_collapse_state_cache[_class_id][_duegroup_id];
+}
+
+function setActiveClassCollapseStateCacheForClass(_class_id, _duegroup_id, _value) {
+    _checkActiveClassCollapseStateCacheClassExists(_class_id);
+    _active_class_collapse_state_cache[_class_id][_duegroup_id] = _value;
+}
+
+function updateActiveClass() {
 
     var ids = ['past-due', 'due-today', 'due-tomorrow', 'due-this-week', 'due-next-week', 'due-this-month', 'due-after-this-month', 'completed'];
     var titles = ['Past Due', 'Due Today', 'Due Tomorrow', 'Due This Week', 'Due Next Week', 'Due This Month', 'Due After This Month', 'Completed'];
     var show_due_dates = [true, false, false, true, true, true, true, false];
     var show_assigns_dues = [true, true, true, true, true, true, true, false];
-    
-    var html = (Handlebars.getTemplate("main_header"))({"name": _active_class.getName(), "id": _active_class.getID()});
-    
-    for (var idx = 0; idx < ids.length; idx ++) {
-        var obj = _active_class.forDuegroup(ids[idx]);
-        obj['id'] = ids[idx];
-        obj['title'] = titles[idx];
-        obj['show-due-dates'] = show_due_dates[idx];
-        obj['show-assigns-due'] = show_assigns_dues[idx];
-        
-        html += (Handlebars.getTemplate("duegroup"))(obj);
-        
+
+    if (_active_class_id != "all") {
+        var _active_class = _user.getClassById(_active_class_id);
+
+        var html = (Handlebars.getTemplate("main_header"))({"name": _active_class.getName(), "id": _active_class.getID()});
+
+        for (var idx = 0; idx < ids.length; idx ++) {
+            var _period = ids[idx];
+            if (_active_class.isThereClassesForDuegroup(_period)) {
+                var obj = _active_class.forDuegroup(_period);
+                obj['id'] = _period;
+                obj['title'] = titles[idx];
+                obj['show-due-dates'] = show_due_dates[idx];
+                obj['show-assigns-due'] = show_assigns_dues[idx];
+                if (_active_class.getAssignsDue(_period) == 0) {
+                    obj['show-assigns-due'] = false;
+                }
+                obj['collapse'] = getActiveClassCollapseStateCacheForClass(_active_class_id, _period);
+
+                html += (Handlebars.getTemplate("duegroup"))(obj);
+            }
+        }
+
+        $("#main").html(html);
+
+        $("#header-class-btns").removeClass('hidden');
+
+    } else {
+
+        var html = (Handlebars.getTemplate("main_header"))({"name": "All Classes", "id": "all"});
+
+        for (var idx = 0; idx < ids.length; idx ++) {
+            var _period = ids[idx];
+            var obj = _user.forDuegroup(_period);
+            obj['id'] = _period;
+            obj['title'] = titles[idx];
+            obj['show-due-dates'] = show_due_dates[idx];
+            obj['show-assigns-due'] = show_assigns_dues[idx];
+            if (obj['assigns-due'] == 0) {
+                obj['show-assigns-due'] = false;
+            }
+            obj['collapse'] = getActiveClassCollapseStateCacheForClass(_active_class_id, _period);
+
+            if (obj['assigns'].length != 0) {
+                html += (Handlebars.getTemplate("duegroup-all-classes"))(obj);
+            }
+
+        }
+
+        $("#main").html(html);
+
+        $("#header-class-btns").addClass('hidden');
+
     }
-    
-    $("#main").html(html);
 
     updateClassEditAndDeleteBtns();
     updateAddNewClassBtn();
@@ -396,32 +513,86 @@ function ID(_name) {
     
     $(".unchecked").click(function (event){
         var _id = this.id;
-        var _assign = _user.getClassById(_active_class_id).getAssignByID(_id);
+        var _assign = _user.getAssignById(_id);
         _assign.setIsCompleted(true);
         updateActiveClass();
-        $("span.badge#" + _active_class_id).text(_user.getClassById(_active_class_id).getTotalAssignsDue());
-        $("#total-assigns-due-badge").text(_user.getTotalAssignsDue());
+        updateActiveClassAssignsDue();
     });
 
     $(".checked").click(function (event){
         var _id = this.id;
-        var _assign = _user.getClassById(_active_class_id).getAssignByID(_id);
+        var _assign = _user.getAssignById(_id);
         _assign.setIsCompleted(false);
         updateActiveClass();
-        $("span.badge#" + _active_class_id).text(_user.getClassById(_active_class_id).getTotalAssignsDue());
-        $("#total-assigns-due-badge").text(_user.getTotalAssignsDue());
+        updateActiveClassAssignsDue();
     });
     
     $(".assign-name").popover();
-    
-    $(".add-new-assign-btn").click(function (event){
+
+    if (_active_class_id == "all") {
+        $(".add-new-assign-btn").addClass('hidden');
+    } else {
+        $(".add-new-assign-btn").removeClass('hidden');
+        $(".add-new-assign-btn").click(function (event){
         _displayAddNewAssignmentModal();
     });
+    }
+
+
+
+    $(".panel-collapse").on('shown.bs.collapse', function (){
+        setActiveClassCollapseStateCacheForClass(_active_class_id, this.id, true);
+    });
+
+    $(".panel-collapse").on('hidden.bs.collapse', function (){
+        setActiveClassCollapseStateCacheForClass(_active_class_id, this.id, false);
+    });
+
 }
 
 function refreshActiveClass() {
     updateActiveClass();
-}var _active_class_id;
+}
+
+function updateActiveClassAssignsDue() {
+    if (_active_class_id != "all") {
+        var __total_assigns_due = _user.getClassById(_active_class_id).getTotalAssignsDue();
+        if (__total_assigns_due == 0) {
+            $("span.badge#" + _active_class_id).addClass('hidden');
+        } else {
+            $("span.badge#" + _active_class_id).removeClass('hidden');
+            $("span.badge#" + _active_class_id).text(__total_assigns_due);
+        }
+    } else {
+        updateAllClassAssignsDue();
+    }
+    updateTotalAssignsDue();
+}
+
+function updateTotalAssignsDue() {
+    var __total_assigns_due = _user.getTotalAssignsDue();
+    if (__total_assigns_due == 0) {
+        $(".total-assigns-due-badge").addClass('hidden');
+    } else {
+        $(".total-assigns-due-badge").removeClass('hidden');
+        $(".total-assigns-due-badge").text(__total_assigns_due);
+    }
+}
+
+function updateAllClassAssignsDue() {
+    var __active_classes = _user.getActiveClasses();
+    for (var index = 0; index < __active_classes.length; index ++) {
+        var __class = __active_classes[index];
+        var __total_assigns_due = __class.getTotalAssignsDue();
+        var __class_id = __class.getID();
+        if (__total_assigns_due == 0) {
+            $("span.badge#" + __class_id).addClass('hidden');
+        } else {
+            $("span.badge#" + __class_id).removeClass('hidden');
+            $("span.badge#" + __class_id).text(__total_assigns_due);
+        }
+    }
+}var _active_class_id = 'all';
 
 function updateClassSidebar() {
     var _obj = _user.forClassSidebar();
@@ -439,20 +610,18 @@ function updateClassSidebar() {
         }
     
         $(".class-li").bind('click', function (event){
-            if (this.id != "all") {
-                changeActiveClass(this.id);
-            }
+            changeActiveClass(this.id);
         });
 
         $(".class-li-navbar").bind('click', function (event){
-            if (this.id != "all") {
-                changeActiveClass(this.id);
-            }
+            changeActiveClass(this.id);
         });
         
 
     }
 
+    updateAllClassAssignsDue();
+    updateTotalAssignsDue();
     updateClassEditAndDeleteBtns();
     
     $(".class-li").hover(function (event) {
@@ -467,9 +636,9 @@ function updateClassSidebar() {
 }
 
 function changeActiveClass(_new_active_class_id) {
-    $(ID(_user.getClassById(_active_class_id).getID())).removeClass('active');
+    $(ID(_active_class_id)).removeClass('active');
     _active_class_id = _new_active_class_id;
-    $(ID(_user.getClassById(_active_class_id).getID())).addClass('active');
+    $(ID(_active_class_id)).addClass('active');
     refreshActiveClass();
 }
 
@@ -831,6 +1000,7 @@ function _displayChangeClassNameModal(_id) {
     this.forDuegroup = function (){
         if (this.getIsCompleted()) {
             return {
+                "class-name": this._parent_class.getName(),
                 "id": this.getID(),
                 "due": this.getDateDue(),
                 "name": this.getName(),
@@ -839,6 +1009,7 @@ function _displayChangeClassNameModal(_id) {
                 "date-completed": this.getDateCompleted()};
         } else {
             return {
+                "class-name": this._parent_class.getName(),
                 "id": this.getID(),
                 "due": this.getDateDue(),
                 "name": this.getName(),
@@ -1065,16 +1236,54 @@ var Class = function (__parent_user, id, __name, assigns_due){
     };
 
     this.forClassSidebar = function (){
-        return {"id": this.getID(), "assigns-due": this.getTotalAssignsDue(), "name": this.getName()};
+        var _show_assigns_due = false;
+        if (this.getTotalAssignsDue() > 0) {
+            _show_assigns_due = true;
+        }
+        return {"id": this.getID(), "assigns-due": this.getTotalAssignsDue(), "name": this.getName(), "show-assigns-due": _show_assigns_due};
+    };
+
+    this.forAllDuegroup = function (_period){
+        var __assigns_out = [];
+        var __assigns = this.getAssigns(_period);
+        for (var index = 0; index < __assigns.length; index ++) {
+            __assigns_out.push(__assigns[index].forDuegroup());
+        }
+        return __assigns_out;
     };
 
     this.forDuegroup = function (_period){
         var __assigns = this.getAssigns(_period);
+        var __incompleted_assigns = __assigns.filter(function (e){
+            return !e.getIsCompleted();
+        });
+        var __completed_assigns = __assigns.filter(function (e){
+            return e.getIsCompleted();
+        });
+
+        var _sort_function = function (a, b){
+            return (a.getDateDue().valueOf() - b.getDateDue().valueOf());
+        };
+
+        __incompleted_assigns.sort(_sort_function);
+        __completed_assigns.sort(_sort_function);
+
         var __assigns_out = [];
-        for (var index = 0; index < __assigns.length; index ++) {
-            __assigns_out.push(__assigns[index].forDuegroup());
+        for (var index = 0; index < __incompleted_assigns.length; index ++) {
+            __assigns_out.push(__incompleted_assigns[index].forDuegroup());
+        }
+        for (var index = 0; index < __completed_assigns.length; index ++) {
+            __assigns_out.push(__completed_assigns[index].forDuegroup());
         }
         return {"assigns-due": this.getAssignsDue(_period), "assigns": __assigns_out};
+    };
+
+    this.isThereClassesForDuegroup = function (_period){
+        if (this.getAssigns(_period).length == 0) {
+            return false;
+        } else {
+            return true;
+        }
     };
 
 };var User = function (display_name, email){
@@ -1221,6 +1430,17 @@ var Class = function (__parent_user, id, __name, assigns_due){
         return null;
     };
 
+    this.getAssignById = function (_assign_id){
+        var __active_classes = this.getActiveClasses();
+        for (var index = 0; index < __active_classes.length; index ++) {
+            var __assign = __active_classes[index].getAssignByID(_assign_id);
+            if (__assign != null) {
+                return __assign;
+            }
+        }
+        return null;
+    }
+
     this.updateTotalAssignsDue = function (_delta_total_assigns_due) {
         this._total_assigns_due += _delta_total_assigns_due;
     };
@@ -1232,6 +1452,17 @@ var Class = function (__parent_user, id, __name, assigns_due){
             __active_classes_output.push(__active_classes[index].forClassSidebar());
         }
         return {"total-assigns-due": this.getTotalAssignsDue(), "active": __active_classes_output};
+    };
+
+    this.forDuegroup = function(_period){
+        var __active_classes = this.getActiveClasses();
+        var __assigns = [];
+        var __assigns_due = 0;
+        for (var index = 0; index < __active_classes.length; index ++) {
+            __assigns_due += __active_classes[index].getAssignsDue(_period);
+            __assigns = __assigns.concat(__active_classes[index].forAllDuegroup(_period));
+        }
+        return {"assigns-due": __assigns_due, "assigns": __assigns};
     };
     
 };
