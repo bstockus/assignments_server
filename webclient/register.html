@@ -4,7 +4,6 @@
     <head>
         <title>Sign-Up for Assignments</title>
         
-        <!-- Bootstrap core CSS -->
         <link rel="stylesheet" href="lib/bootstrap/css/bootstrap.min.css">
         
         <style type="text/css">
@@ -76,13 +75,13 @@
               <div class="modal-footer">
                 <a role="button" class="btn btn-primary" id="OK-btn" href="index.html">OK</a>
               </div>
-            </div><!-- /.modal-content -->
-          </div><!-- /.modal-dialog -->
-        </div><!-- /.modal -->
+            </div>
+          </div>
+        </div>
         
         <div class="container" id="main">
 
-          <form class="form-signin" role="form">
+          <div class="form-signin" role="form">
             <h2 class="form-signin-heading">Please Register</h2>
             <input type="text" class="form-control top" placeholder="User name" id="username" autofocus>
             <input type="text" class="form-control middle" placeholder="Display name" id="displayname">
@@ -90,12 +89,10 @@
             <input type="password" class="form-control bottom" placeholder="Password" id="password">
             <p class="text-danger" id="error-text"></p>
             <button class="btn btn-lg btn-primary btn-block" id="submit">Register</button>
-          </form>
+          </div>
 
-        </div> <!-- /container -->
-        
-        <!-- Bootstrap core JavaScript ================================================== -->
-        <!-- Placed at the end of the document so the pages load faster -->
+        </div>
+
         <script src="lib/jquery/jquery.min.js"></script>
         <script src="lib/bootstrap/js/bootstrap.min.js"></script>
         <script src="../api.js"></script>
@@ -121,7 +118,6 @@
                 performAjaxRequest('POST', 'create_user', {}, JSON.stringify(body), cb);
             });
         });
-        
         </script>
         
     </body>
